@@ -149,7 +149,7 @@ classdef Hamiltonian
         function [H,z] = makeZeeman(~,mu,m)
             n = length(m);
             z = -mu*m;
-            H = spdiags(z,0,n,n);
+            H = spdiags(z,0,n,n); %only works if bfield is in z-direction
         end
         function H = makeDCStark(obj,d0, N,mN, opts)
             arguments
