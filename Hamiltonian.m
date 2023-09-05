@@ -9,6 +9,7 @@ classdef Hamiltonian
         ac_stark
         Basis
         Fields
+        Molecule
     end
     
     methods
@@ -22,6 +23,7 @@ classdef Hamiltonian
             if ~isempty(opts.Molecule)
                 C = Constants;
                 Mol = opts.Molecule;
+                obj.Molecule=Mol;
                 Atom1 = Mol.Atom1;
                 Atom2 = Mol.Atom2;
                 i1 = AngMom(Atom1.spin,"i1");
@@ -40,7 +42,6 @@ classdef Hamiltonian
                 SCtoUC = calcTransform(SCBasis,UCBasis,I); %gives you U such that UCBasis = U*SCBasis (UC is a sparse matrix) (unitarity is checked)
                 Fi1toUC = calcTransform(Fi1Basis,UCBasis,Fi1);
                 Fi2toUC = calcTransform(Fi2Basis,UCBasis,Fi2);
-
                 %% Set standard Fields
                 Fields.B = struct(value=0,dir=[0,0,1]);
                 Fields.E = struct(value=0,dir=[0,0,1]);
@@ -87,7 +88,7 @@ classdef Hamiltonian
                 opts.useSpinSpinTensor = 1
                 opts.useSpinRotation = 1
                 opts.useNuclearElectric= 1
-                opts.B struct = struct(value=[0],dir=[0,0,1]) %Magnetic field in Tesla
+                opts.B struct = struct(value=[0],dir=[0,0,1]) %Magnetic field in Tesla, maybe should just be a vector?
                 opts.E struct = struct(value=[0],dir=[0,0,1]) %Electric field in V/m
             end
             
@@ -107,8 +108,8 @@ classdef Hamiltonian
             if opts.useNuclearElectric
                 h_hyperfine = h_hyperfine + obj.hyperfine.electricQuadrupole;
             end
-            dc_stark = squeeze(opts.E.dir(1)*obj.dc_stark(1,:,:)+opts.E.dir(2)*obj.dc_stark(2,:,:)+opts.E.dir(3)*obj.dc_stark(3,:,:));
-            H = h_hyperfine + opts.B.value*obj.zeeman + opts.E.value*dc_stark;           
+            DC_stark = squeeze(opts.E.dir(1)*obj.dc_stark(1,:,:)+opts.E.dir(2)*obj.dc_stark(2,:,:)+opts.E.dir(3)*obj.dc_stark(3,:,:));
+            H = h_hyperfine + opts.B.value*obj.zeeman + opts.E.value*DC_stark;           
         end
         function [H,s] = scalarNuclear(~,c,jtot,j1,j2)
             n = length(jtot);
@@ -165,9 +166,12 @@ classdef Hamiltonian
             TC = tensorC(N,mN, 1); 
             dcZ = TC{2};
             hm = TC{1}; 
-            hp = TC{3};
-            dcX = -(hm-hp)/sqrt(2);%see Tills code
-            dcY = 1i*(hm-hp)/sqrt(2);
+            % hp = TC{3};
+            
+            % dcX = -(hm-hp)/sqrt(2);%see Tills code
+            % dcY = 1i*(hm-hp)/sqrt(2);
+            dcX = -(1/sqrt(2))*(hm + conj(hm'));
+            dcY = 1i*(1/sqrt(2))*(hm - conj(hm'));
 
             H = nan(3,size(dcY,1),size(dcY,2));
             H(1,:,:) = d0*dcX; 
