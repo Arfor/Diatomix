@@ -1,18 +1,17 @@
-classdef RbCs
-    %RbCs Summary of this class goes here
-%  Most recent Rb87Cs133 Constants are given in the supplementary 
-% of Gregory et al., Nat. Phys. 17, 1149-1153 (2021)
-% https://www.nature.com/articles/s41567-021-01328-7
-%  Polarisabilities are for 1064 nm reported 
-% in Blackmore et al., PRA 102, 053316 (2020)
-% https://journals.aps.org/pra/abstract/10.1103/PhysRevA.102.053316    
+classdef NaK
+    %KRB Summary of this class goes here
+% Parameters from Will et al., PRL 116, 225306 (2016)
+% https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.116.225306
+% and from Aldegunde et al., PRA 96, 042506 (2017)
+% https://journals.aps.org/pra/abstract/10.1103/PhysRevA.96.042506
+    
     properties (Constant)
-        d0  = 1.225 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m  from Ni et al., Science 322, 231-235 (2008) 0.574
+        d0  = 2.72 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m  from Ni et al., Science 322, 231-235 (2008) 0.574
     end
     properties
         name    %
-        Atom1   %Rb
-        Atom2   %Cs
+        Atom1   %Na
+        Atom2   %K
         c1      %for Atom 1
         c2      %for Atom 2
         c3      %
@@ -22,33 +21,33 @@ classdef RbCs
         Drot    %Centrifugal constant
         Q1      %nuclear electric quadrupole constant (at position of Atom1) 
         Q2      %nuclear electric quadrupole constant (at position of Atom2) 
-        a0      %h*Hz/(W/cm^2) at 1064nm
-        a2      % tensor polarisability at 1064nm
+        a0      %h*Hz/(W/cm^2)
+        a2      % tensor polarisability
     end
     
     methods
-        function obj = RbCs(nRb,nCs)
+        function obj = NaK(nNa,nK)
             arguments
-                nRb {mustBeMember(nRb,[87])} = 87;
-                nCs {mustBeMember(nCs,[133])} = 133;
+                nNa {mustBeMember(nNa,[23])} = 23;
+                nK {mustBeMember(nK,[40])} = 40;
             end
             %RbCs Construct an instance of this class            
-            if nCs==133&&nRb==87
-                obj.Atom1=Rb87;
-                obj.Atom2=Cs133;
+            if nK==40&&nNa==23
+                obj.Atom1=Na23;
+                obj.Atom2=K40;
                 idx=1;
             end
             %   Constants taken from DOI: 10.1038/s41567-021-01328-7
             h = 6.62606896e-34; 
-            c1 = [98.4] * h;%for Rb
-            c2 = [194.2] * h;%for Cs
-            c3 = [192.4] * h;
-            c4 = [19.0189557e3] * h;
-            gr = [0.0062];
-            Brot = 1e9*[0.49174] * h; 
+            c1 = [117.4] * h;%for Atom1
+            c2 = [-97.0] * h;%for Atom2
+            c3 = [-48.4] * h;
+            c4 = [-409] * h;
+            gr = [0.0253];
+            Brot = 1e9*[2.8217297] * h; 
             Drot = [207.3] * h; 
-            Q1 = 1e6*[-0.80929]*h; %nuclear electric quadrupole constant (at position of Atom 1) 
-            Q2 = 1e3*[59.98]*h;%nuclear electric quadrupole constant (at position of Atom 2) 
+            Q1 = 1e6*[-0.187]*h; %nuclear electric quadrupole constant (at position of Atom 1) 
+            Q2 = 1e6*[0.899]*h;%nuclear electric quadrupole constant (at position of Atom 2) 
             
             obj.c1 = c1(idx);
             obj.c2 = c2(idx);            

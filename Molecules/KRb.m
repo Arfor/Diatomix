@@ -16,8 +16,8 @@ classdef KRb
         gr      %Molecular Magnetic g-factor
         Brot    %Rotational constant
         Drot    %Centrifugal constant
-        Q1      %nuclear electric quadrupole constant (at position of K) 
-        Q2      %nuclear electric quadrupole constant (at position of Rb) 
+        Q1      %nuclear electric quadrupole constant (at position of Atom1) 
+        Q2      %nuclear electric quadrupole constant (at position of Atom2) 
     end
     
     methods

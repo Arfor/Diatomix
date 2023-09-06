@@ -1,15 +1,15 @@
 classdef Cs133 
 %RB87 Summary of this class goes here
-%   Detailed explanation goes here
+%   Parameters from Aldegunde & Hutson (2017): 10.1103/PhysRevA.96.042506
 
 properties (Constant)
   mass = 132.905451933*1.66053906660e-27; %kg
   name = "{}^{133}Cs";
   parity = 0; %fermion = 1, boson = 0
   spin = 7/2;
-  gFactor = 0.7331;%
+  gFactor = 0.738;%
   % electricQuadrupoleMoment = 1e6*-1.41 * 6.62606896e-34;%(eQq)_Cs (Hz) 
-  nuclearShielding = 0;%sigma(ppm)
+  nuclearShielding = 6278.7e-6;%sigma(ppm)
 end
 properties
    transitions

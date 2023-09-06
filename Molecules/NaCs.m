@@ -1,18 +1,13 @@
-classdef RbCs
-    %RbCs Summary of this class goes here
-%  Most recent Rb87Cs133 Constants are given in the supplementary 
-% of Gregory et al., Nat. Phys. 17, 1149-1153 (2021)
-% https://www.nature.com/articles/s41567-021-01328-7
-%  Polarisabilities are for 1064 nm reported 
-% in Blackmore et al., PRA 102, 053316 (2020)
-% https://journals.aps.org/pra/abstract/10.1103/PhysRevA.102.053316    
+classdef NaCs
+    %NaCs Summary of this class goes here
+%   Parameters from Aldegunde & Hutson (2017): 10.1103/PhysRevA.96.042506
     properties (Constant)
         d0  = 1.225 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m  from Ni et al., Science 322, 231-235 (2008) 0.574
     end
     properties
         name    %
-        Atom1   %Rb
-        Atom2   %Cs
+        Atom1   %
+        Atom2   %
         c1      %for Atom 1
         c2      %for Atom 2
         c3      %
@@ -27,29 +22,29 @@ classdef RbCs
     end
     
     methods
-        function obj = RbCs(nRb,nCs)
+        function obj = NaCs(nNa,nCs)
             arguments
-                nRb {mustBeMember(nRb,[87])} = 87;
+                nNa {mustBeMember(nNa,[23])} = 23;
                 nCs {mustBeMember(nCs,[133])} = 133;
             end
             %RbCs Construct an instance of this class            
-            if nCs==133&&nRb==87
-                obj.Atom1=Rb87;
+            if nCs==133&&nNa==23
+                obj.Atom1=Na23;
                 obj.Atom2=Cs133;
                 idx=1;
             end
-            %   Constants taken from DOI: 10.1038/s41567-021-01328-7
+            %   Constants taken from DOI: 
             h = 6.62606896e-34; 
-            c1 = [98.4] * h;%for Rb
-            c2 = [194.2] * h;%for Cs
-            c3 = [192.4] * h;
-            c4 = [19.0189557e3] * h;
+            c1 = [14.2] * h;%for Na
+            c2 = [854.5] * h;%for CS
+            c3 = [105.6] * h;
+            c4 = [3941.8] * h;
             gr = [0.0062];
-            Brot = 1e9*[0.49174] * h; 
-            Drot = [207.3] * h; 
-            Q1 = 1e6*[-0.80929]*h; %nuclear electric quadrupole constant (at position of Atom 1) 
-            Q2 = 1e3*[59.98]*h;%nuclear electric quadrupole constant (at position of Atom 2) 
-            
+            Brot = 1e9*[1.7396] * h; 
+            Drot = [0] * h; 
+            Q1 = 1e6*[-0.097]*h; %nuclear electric quadrupole constant (at position of Atom 1) 
+            Q2 = 1e6*[0.15]*h;%nuclear electric quadrupole constant (at position of Atom 2) 
+
             obj.c1 = c1(idx);
             obj.c2 = c2(idx);            
             obj.c3 = c3(idx);
