@@ -9,13 +9,6 @@ properties
     NStates
 end
 
-methods (Access = private)
-    function a = struct2array(s) %because matlab is stupid
-        temp = struct2cell(s);
-        a = [temp{:}];
-    end
-end
-
 methods
     function obj = Basis(varargin)
         %BASIS Construct an instance of this class
