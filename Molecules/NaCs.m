@@ -2,7 +2,7 @@ classdef NaCs
     %NaCs Summary of this class goes here
 %   Parameters from Aldegunde & Hutson (2017): 10.1103/PhysRevA.96.042506
     properties (Constant)
-        d0  = 1.225 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m  from Ni et al., Science 322, 231-235 (2008) 0.574
+        d0  = 4.75 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m 
     end
     properties
         name    %

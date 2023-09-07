@@ -5,7 +5,7 @@ classdef NaRb
 % and from Aldegunde et al., PRA 96, 042506 (2017)
 % https://journals.aps.org/pra/abstract/10.1103/PhysRevA.96.042506
     properties (Constant)
-        d0  = 3.2 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m  from Ni et al., Science 322, 231-235 (2008) 0.574
+        d0  = 3.2 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m
     end
     properties
         name    %
