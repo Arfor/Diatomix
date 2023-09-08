@@ -47,13 +47,15 @@ classdef Hamiltonian
                 Fields.E = struct(value=0,dir=[0,0,1]);
                 Fields.I = struct(value=0,dir=[0,0,1], pol = [0,1,0]);
 
-                %% Zeeman term
+                %% Zeeman
                 g1 = Atom1.gFactor; sig1 = Atom1.nuclearShielding;
                 g2 = Atom2.gFactor; sig2 = Atom2.nuclearShielding;
                 st = UCBasis.getStates("all");
                 obj.zeeman = obj.makeZeeman(g1*(1-sig1)*C.muN,st.mi1) + obj.makeZeeman(g2*(1-sig2)*C.muN,st.mi2) + obj.makeZeeman(Mol.gr*C.muN,st.mN); 
-                %% DC Stark term
+                %% DC Stark
                 obj.dc_stark = obj.makeDCStark(Mol.d0,st.N,st.mN);
+                %% AC Stark
+                obj.ac_stark = obj.makeACStark(Mol.d0,st.N,st.mN);
                 %% Hyperfine
                 %Rigid Rotor
                 obj.hyperfine.rigidRotor = obj.rotational(st.N,Mol.Brot,0); 
@@ -80,16 +82,16 @@ classdef Hamiltonian
                 obj.Basis = UCBasis;
             end
         end
-        function H = makeHamiltonian(obj, opts)
+        function H = makeHamiltonian(obj,B,E, opts)
             arguments
                 obj
+                B struct %= struct(value=[0],dir=[0,0,1]) %Magnetic field in Tesla, maybe should just be a vector?
+                E struct %= struct(value=[0],dir=[0,0,1]) %Electric field in V/m
                 opts.useRigidRotor = 1
                 opts.useSpinSpinScalar = 1
                 opts.useSpinSpinTensor = 1
                 opts.useSpinRotation = 1
                 opts.useNuclearElectric= 1
-                opts.B struct = struct(value=[0],dir=[0,0,1]) %Magnetic field in Tesla, maybe should just be a vector?
-                opts.E struct = struct(value=[0],dir=[0,0,1]) %Electric field in V/m
             end
             
             h_hyperfine = sparse(obj.Basis.NStates,obj.Basis.NStates);
@@ -108,8 +110,8 @@ classdef Hamiltonian
             if opts.useNuclearElectric
                 h_hyperfine = h_hyperfine + obj.hyperfine.electricQuadrupole;
             end
-            DC_stark = squeeze(opts.E.dir(1)*obj.dc_stark(1,:,:)+opts.E.dir(2)*obj.dc_stark(2,:,:)+opts.E.dir(3)*obj.dc_stark(3,:,:));
-            H = h_hyperfine + opts.B.value*obj.zeeman + opts.E.value*DC_stark;           
+            DC_stark = squeeze(E.dir(1)*obj.dc_stark(1,:,:)+E.dir(2)*obj.dc_stark(2,:,:)+E.dir(3)*obj.dc_stark(3,:,:));
+            H = h_hyperfine + B.value*obj.zeeman + E.value*DC_stark;           
         end
         function [H,s] = scalarNuclear(~,c,jtot,j1,j2)
             n = length(jtot);
@@ -147,12 +149,39 @@ classdef Hamiltonian
             q = -Q*( 3*(NdotI.^2) + 1.5*NdotI - I.*(I+1).*N.*(N+1)) ./ ( 2*I.*(2*I-1).*(2*N-1).*(2*N+3) );
             H = spdiags(q,0,n,n); %create diagonal sparse matrix
         end 
+        
         function [H,z] = makeZeeman(~,mu,m)
             n = length(m);
             z = -mu*m;
             H = spdiags(z,0,n,n); %only works if bfield is in z-direction
         end
         function H = makeDCStark(obj,d0, N,mN, opts)
+            arguments
+                obj
+                d0
+                % basis
+                N
+                mN
+                opts.dir = [0,0,1]; %electric field direction
+            end
+            dir = opts.dir/norm(opts.dir);
+           
+            TC = tensorC(N,mN, 1); 
+            dcZ = TC{2};
+            hm = TC{1}; 
+            % hp = TC{3};
+            
+            % dcX = -(hm-hp)/sqrt(2);%see Tills code
+            % dcY = 1i*(hm-hp)/sqrt(2);
+            dcX = -(1/sqrt(2))*(hm + conj(hm'));
+            dcY = 1i*(1/sqrt(2))*(hm - conj(hm'));
+
+            H = nan(3,size(dcY,1),size(dcY,2));
+            H(1,:,:) = d0*dcX; 
+            H(2,:,:) = d0*dcY; 
+            H(3,:,:) = d0*dcZ; 
+        end
+        function H = makeACStark(obj,d0, N,mN, opts)
             arguments
                 obj
                 d0
