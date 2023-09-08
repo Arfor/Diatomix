@@ -87,6 +87,7 @@ classdef Hamiltonian
                 obj
                 opts.B struct = struct(value=[0],dir=[0,0,1]) %Magnetic field in Tesla, maybe should just be a vector?
                 opts.E struct = struct(value=[0],dir=[0,0,1]) %Electric field in V/m
+                opts.I struct = struct(value=[0],dir=[0,0,1]) %Light Intensity in W/m2
                 opts.useRigidRotor = 1
                 opts.useSpinSpinScalar = 1
                 opts.useSpinSpinTensor = 1
@@ -150,6 +151,16 @@ classdef Hamiltonian
             H = spdiags(q,0,n,n); %create diagonal sparse matrix
         end 
         
+        function [H] = acIsotropic(obj,N,mN)
+            arguments
+                obj
+                N
+                mN
+            end
+            n= length(N);
+        end
+        function [H,a0] = acAnisotropic()
+        end
         function [H,z] = makeZeeman(~,mu,m)
             n = length(m);
             z = -mu*m;
@@ -181,10 +192,10 @@ classdef Hamiltonian
             H(2,:,:) = d0*dcY; 
             H(3,:,:) = d0*dcZ; 
         end
-        function H = makeACStark(obj,d0, N,mN, opts)
+        function H = makeACStark(obj,a0,a2, N,mN, opts)
             arguments
                 obj
-                d0
+                a
                 % basis
                 N
                 mN

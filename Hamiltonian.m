@@ -87,6 +87,7 @@ classdef Hamiltonian
                 obj
                 opts.B struct = struct(value=[0],dir=[0,0,1]) %Magnetic field in Tesla, maybe should just be a vector?
                 opts.E struct = struct(value=[0],dir=[0,0,1]) %Electric field in V/m
+                opts.I struct = struct(value=[0],dir=[0,0,1]) %Light Intensity in W/m2
                 opts.useRigidRotor = 1
                 opts.useSpinSpinScalar = 1
                 opts.useSpinSpinTensor = 1
@@ -181,33 +182,31 @@ classdef Hamiltonian
             H(2,:,:) = d0*dcY; 
             H(3,:,:) = d0*dcZ; 
         end
-        function H = makeACStark(obj,d0, N,mN, opts)
-            arguments
-                obj
-                d0
-                % basis
-                N
-                mN
-                opts.dir = [0,0,1]; %electric field direction
-            end
-            dir = opts.dir/norm(opts.dir);
-           
-            TC = tensorC(N,mN, 1); 
-            dcZ = TC{2};
-            hm = TC{1}; 
-            % hp = TC{3};
-            
-            % dcX = -(hm-hp)/sqrt(2);%see Tills code
-            % dcY = 1i*(hm-hp)/sqrt(2);
-            dcX = -(1/sqrt(2))*(hm + conj(hm'));
-            dcY = 1i*(1/sqrt(2))*(hm - conj(hm'));
-
-            H = nan(3,size(dcY,1),size(dcY,2));
-            H(1,:,:) = d0*dcX; 
-            H(2,:,:) = d0*dcY; 
-            H(3,:,:) = d0*dcZ; 
-        end
-        function s = makeSparseMatrix(X, iCol, iRow)
+        % function H = makeACStark(obj,a0,a2, N,mN, opts)
+        %     arguments
+        %         obj
+        %         a0
+        %         a2
+        %         % basis
+        %         N
+        %         mN
+        %         opts.dir = [0,0,1]; %electric field direction
+        %         opts.pol = [0,0,1]; %sigma- = [1,-1i,0] relative to the propagation axis
+        %     end
+        %     n = length(N);
+        %     dir = opts.dir/norm(opts.dir);
+        % 
+        %     %The isotropic part is diagonal
+        %     H_acIsotropic = spdiags(-a0,0,n,n); %only works if bfield is in z-direction
+        % 
+        %     %the anisotropic is a bit more involved, but very similar to DC stark
+        %     TC = tensorC(N,mN, 2); %second order tensor, for rotational states
+        %     H = nan(3,size(dcY,1),size(dcY,2));
+        %     H(1,:,:) = d0*dcX; 
+        %     H(2,:,:) = d0*dcY; 
+        %     H(3,:,:) = d0*dcZ; 
+        % end
+        function s = makeSparseMatrix(~,X, iCol, iRow)
             % Prune lists
             pruneA = ~isnan(X);
             iCol = iCol(pruneA);
