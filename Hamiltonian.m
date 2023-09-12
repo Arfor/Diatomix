@@ -10,6 +10,9 @@ classdef Hamiltonian
         Basis
         Fields
         Molecule
+        ReferenceAxis
+        electricGradient
+        maxN
     end
     
     methods
@@ -17,9 +20,21 @@ classdef Hamiltonian
             arguments
                 opts.Molecule = []
                 opts.maxN = 1;
+                opts.ReferenceAxis = [0,1,0];
+                opts.Fields = [];
             end
             %HAMILTONIAN Construct an instance of this class
-            %   Detailed explanation goes here
+            %set all optional fields if given
+            fieldNames = fields(opts);
+            for i = 1:length(fieldNames) 
+                obj.(fieldNames{i})=opts.(fieldNames{i});
+            end
+            if isempty(obj.Fields)
+                obj.Fields.E.dir = obj.ReferenceAxis;
+                obj.Fields.B.dir = obj.ReferenceAxis;
+                obj.Fields.I.dir = obj.ReferenceAxis;
+                obj.Fields.I.pol = [1,0,0]; 
+            end
             if ~isempty(opts.Molecule)
                 C = Constants;
                 Mol = opts.Molecule;
@@ -28,73 +43,155 @@ classdef Hamiltonian
                 Atom2 = Mol.Atom2;
                 i1 = AngMom(Atom1.spin,"i1");
                 i2 = AngMom(Atom2.spin,"i2");
-                N = AngMom([0:opts.maxN],"N");
+                N = AngMom([0:obj.maxN],"N");
                 I = couple(i1,i2,"I");      %couple the two nuclear momenta
                 Fi1 = couple(i1,N,"Fi1");   %couple only a single nucleus to the rotation
                 Fi2 = couple(i2,N,"Fi2");   %couple only a single nucleus to the rotation
-                F = couple(I,N,"F");        %fully coupled
+                % F = couple(I,N,"F");        %fully coupled
                 UCBasis = Basis(N,i1,i2);
+                obj.Basis = UCBasis;
                 SCBasis = Basis(N,I); 
                 Fi1Basis = Basis(Fi1,i2);
                 Fi2Basis = Basis(Fi2,i1);
-                FCBasis = Basis(F);
+                % FCBasis = Basis(F);
                 nStates = UCBasis.NStates;
                 SCtoUC = calcTransform(SCBasis,UCBasis,I); %gives you U such that UCBasis = U*SCBasis (UC is a sparse matrix) (unitarity is checked)
                 Fi1toUC = calcTransform(Fi1Basis,UCBasis,Fi1);
                 Fi2toUC = calcTransform(Fi2Basis,UCBasis,Fi2);
                 %% Set standard Fields
-                Fields.B = struct(value=0,dir=[0,0,1]);
-                Fields.E = struct(value=0,dir=[0,0,1]);
-                Fields.I = struct(value=0,dir=[0,0,1], pol = [0,1,0]);
+                % Fields.B = struct(value=0,dir=[0,0,1]);
+                % Fields.E = struct(value=0,dir=[0,0,1]);
+                % Fields.I = struct(value=0,dir=[0,0,1], pol = [0,1,0]);
 
-                %% Zeeman
-                g1 = Atom1.gFactor; sig1 = Atom1.nuclearShielding;
-                g2 = Atom2.gFactor; sig2 = Atom2.nuclearShielding;
-                st = UCBasis.getStates("all");
-                obj.zeeman = obj.makeZeeman(g1*(1-sig1)*C.muN,st.mi1) + obj.makeZeeman(g2*(1-sig2)*C.muN,st.mi2) + obj.makeZeeman(Mol.gr*C.muN,st.mN); 
-                %% DC Stark
-                obj.dc_stark = obj.makeDCStark(Mol.d0,st.N,st.mN);
-                %% AC Stark
-                obj.ac_stark = obj.makeACStark(Mol.d0,st.N,st.mN);
                 %% Hyperfine
                 %Rigid Rotor
+                st = UCBasis.getStates("all");
                 obj.hyperfine.rigidRotor = obj.rotational(st.N,Mol.Brot,0); 
+
+                % Nuclear Electric Quadrupole
+                h_electricQuadrupole1 = obj.electricQuadrupole(st.i1,st.mi1,UCBasis);
+                h_electricQuadrupole2 = obj.electricQuadrupole(st.i2,st.mi2,UCBasis);
+                obj.hyperfine.electricQuadrupole = Mol.Q1*h_electricQuadrupole1 + Mol.Q2*h_electricQuadrupole2;
 
                 %Scalar Spin-spin coupling
                 st = SCBasis.getStates("all");
                 spinSpinScalar = obj.scalarNuclear(Mol.c4,st.I,st.i2, st.i1);
                 obj.hyperfine.spinSpinScalar =  SCtoUC'*spinSpinScalar*SCtoUC; 
 
-                %Scalar Spin-Rotation Coupling & Nuclear Electric Quadrupole
+                %Scalar Spin-Rotation Coupling 
                 st = Fi1Basis.getStates("all");
                 h_spinRot1 = obj.scalarNuclear(Mol.c1,st.Fi1,st.N, st.i1);
-                h_electricQuadrupole1 = obj.electricQuadrupole(Mol.Q1,st.N,st.i1,st.Fi1);
-
                 st = Fi2Basis.getStates("all");
                 h_spinRot2 = obj.scalarNuclear(Mol.c2,st.Fi2,st.N, st.i2);
-                h_electricQuadrupole2 = obj.electricQuadrupole(Mol.Q2,st.N,st.i2,st.Fi2);
-
                 obj.hyperfine.spinRotation = Fi1toUC'*h_spinRot1*Fi1toUC + Fi2toUC'*h_spinRot2*Fi2toUC;
-                obj.hyperfine.electricQuadrupole = Fi1toUC'*h_electricQuadrupole1*Fi1toUC + Fi2toUC'*h_electricQuadrupole2*Fi2toUC;
 
                 %Tensor Spin-Spin Coupling
                 obj.hyperfine.spinSpinTensor = obj.tensorNuclear(Mol.c3,i1,i2, UCBasis); 
-                obj.Basis = UCBasis;
+
+                obj.hyperfine.total = obj.makeHyperfine;
+                %% Zeeman
+                g1 = Atom1.gFactor; sig1 = Atom1.nuclearShielding;
+                g2 = Atom2.gFactor; sig2 = Atom2.nuclearShielding;
+                st = UCBasis.getStates("all");
+                obj.zeeman = obj.makeZeeman(g1*(1-sig1)*C.muN,st.mi1) + obj.makeZeeman(g2*(1-sig2)*C.muN,st.mi2) + obj.makeZeeman(Mol.gr*C.muN,st.mN); 
+                %% DC Stark
+                obj.dc_stark = obj.makeDCStark(Mol.d0,st.N,st.mN, dir=obj.Fields.E.dir);
+                %% AC Stark
+                obj.ac_stark = obj.makeACStark(Mol.a0,Mol.a2,st.N,st.mN, Field=obj.Fields.I);
+            end
+
+        end
+        function [H,s] = scalarNuclear(~,c4,jtot,j1,j2)
+            n = length(jtot);
+            s = 0.5*c4*(jtot.*(jtot+1) - j1.*(j1+1) - j2.*(j2+1));
+            H = spdiags(s,0,n,n); %create diagonal sparse matrix
+        end
+        function H = tensorNuclear(obj,c3,j1,j2, basis)           
+            assert(length(j1.js)==1 && length(j2.js)==1); %Only checked for single vectors, do some thorough checking of basis.AngMomOperators first if you want to extend functionality!
+            I1 = j1.js;
+            I2 = j2.js;
+            N = basis.getStates("N");
+            mN = basis.getStates("mN");
+            
+            if isempty(obj.electricGradient)
+                T2C = tensorC(N,mN, 2); 
+            else
+                T2C = obj.electricGradient;
+            end
+            T2_Coupled = basis.coupleSpherically(j1,j2);
+            
+            H = sqrt(6)*c3*sphericalTensorDot(T2C,T2_Coupled);
+        end
+        function [H,r] = rotational(~, N, Brot, Drot)
+            n = length(N);
+            N2 = N.*(N+1);
+            r = Brot*N2 - Drot*N2.*N2;
+            % r = Brot*N.^2 - Drot*(N.^2).*(N.^2);
+            H = spdiags(r ,0,n,n); %create diagonal sparse matrix
+        end    
+        function H = electricQuadrupole(obj,I,mI,basis) 
+            if isempty(obj.electricGradient)
+                N = basis.getStates("N");
+                mN = basis.getStates("mN");
+                obj.electricGradient = tensorC(N,mN, 2);
+            end
+            QM = obj.quadrupoleMoment(I,mI);
+            H = sphericalTensorDot(QM,obj.electricGradient)/4;
+        end 
+        % function [H,q] = electricQuadrupole(~,Q,N,I,Fi) 
+        %     n = length(N);            
+        %     NdotI = 0.5*(Fi.*(Fi+1) - N.*(N+1) - I.*(I+1));            
+        %     q = -Q*( 3*(NdotI.^2) + 1.5*NdotI - I.*(I+1).*N.*(N+1)) ./ ( 2*I.*(2*I-1).*(2*N-1).*(2*N+3) );
+        %     H = spdiags(q,0,n,n); %create diagonal sparse matrix
+        % 
+        % 
+        % 
+        % end 
+        function T = quadrupoleMoment(obj,I,mI)
+            %Calculate nuclear electric quadrupole moment and return 2nd
+            %order Tensor
+            T = cell(5,1);
+
+            uI = unique(I); umI = unique(mI); 
+            matrixSize = length(I);
+            maxCalcs = (length( uI)*length(umI))^2;
+            
+            p = -2:2;
+            for ip = 1:length(p)
+                calcCount = 1;
+                X = nan(maxCalcs,1);
+                iCol = cell(maxCalcs,1); %column indices for matrix
+                iRow = cell(maxCalcs,1); %row indices for matrix
+                for I1 = reshape(uI,1,[]) %For a single atom, this will just be one value
+                    w2 = Wigner3j([I1, 2, I1],[-I1,0,I1]);
+                    for mI1 = -I1:I1
+                        for mI2 = -I1:I1
+                            colIdx = find((I == I1)&(mI==mI1));
+                            rowIdx = find((I == I1)&(mI==mI2));
+        
+                            if (-mI1+mI2+p(ip))~=0; continue; end
+                            x = (-1)^(I1-mI1) * Wigner3j([I1, 2, I1],[-mI1, p(ip), mI2])* w2;
+        
+                            X(calcCount) = x;
+                            iRow{calcCount} = rowIdx;
+                            iCol{calcCount} = colIdx;
+                            calcCount = calcCount+1;
+                        end
+                    end
+                end
+                T{ip} = obj.makeSparseMatrix(X, iCol, iRow,matrixSize);
             end
         end
-        function H = makeHamiltonian(obj, opts)
+
+        function H = makeHyperfine(obj, opts)
             arguments
                 obj
-                opts.B struct = struct(value=[0],dir=[0,0,1]) %Magnetic field in Tesla, maybe should just be a vector?
-                opts.E struct = struct(value=[0],dir=[0,0,1]) %Electric field in V/m
-                opts.I struct = struct(value=[0],dir=[0,0,1]) %Light Intensity in W/m2
                 opts.useRigidRotor = 1
                 opts.useSpinSpinScalar = 1
                 opts.useSpinSpinTensor = 1
                 opts.useSpinRotation = 1
                 opts.useNuclearElectric= 1
             end
-            
             h_hyperfine = sparse(obj.Basis.NStates,obj.Basis.NStates);
             if opts.useRigidRotor
                 h_hyperfine = h_hyperfine + obj.hyperfine.rigidRotor;
@@ -111,47 +208,9 @@ classdef Hamiltonian
             if opts.useNuclearElectric
                 h_hyperfine = h_hyperfine + obj.hyperfine.electricQuadrupole;
             end
-            DC_stark = squeeze(opts.E.dir(1)*obj.dc_stark(1,:,:)+opts.E.dir(2)*obj.dc_stark(2,:,:)+opts.E.dir(3)*obj.dc_stark(3,:,:));
-            H = h_hyperfine + opts.B.value*obj.zeeman + opts.E.value*DC_stark;           
+            H = h_hyperfine;        
         end
-        function [H,s] = scalarNuclear(~,c,jtot,j1,j2)
-            n = length(jtot);
-            s = 0.5*c*(jtot.*(jtot+1) - j1.*(j1+1) - j2.*(j2+1));
-            H = spdiags(s,0,n,n); %create diagonal sparse matrix
-        end
-        function H = tensorNuclear(~,c,j1,j2, basis)           
-            assert(length(j1.js)==1 && length(j2.js)==1); %Only checked for single vectors, do some thorough checking of basis.AngMomOperators first if you want to extend functionality!
-            I1 = j1.js;
-            I2 = j2.js;
-            N = basis.getStates("N");
-            mN = basis.getStates("mN");
-            
-            T2C = tensorC(N,mN, 2); 
-            T2_Coupled = basis.coupleSpherically(j1,j2);
-            
-            H = sqrt(6)*c*sphericalTensorDot(T2C,T2_Coupled);
-        end
-        function [H,r] = rotational(~, N, Brot, Drot)
-            n = length(N);
-            N2 = N.*(N+1);
-            r = Brot*N2 - Drot*N2.*N2;
-            % r = Brot*N.^2 - Drot*(N.^2).*(N.^2);
-            H = spdiags(r ,0,n,n); %create diagonal sparse matrix
-        end    
-        % function [H,q] = electricQuadrupole(obj,Q,N,I,Fi)
-        %     n = length(N);            
-        %     q = Q*(3/4)*( (I.^2 + N.^2 - Fi.^2).*((I.^2 + N.^2 - Fi.^2)-1) - I.*(I+1).*N.*(N+1)) ./ ...
-        %         (2*I.*(2*I-1).*(2*N-1).*(2*N+3));
-        %     H = spdiags(q,0,n,n); %create diagonal sparse matrix
-        % end 
-        function [H,q] = electricQuadrupole(~,Q,N,I,Fi) 
-            n = length(N);            
-            NdotI = 0.5*(Fi.*(Fi+1) - N.*(N+1) - I.*(I+1));            
-            q = -Q*( 3*(NdotI.^2) + 1.5*NdotI - I.*(I+1).*N.*(N+1)) ./ ( 2*I.*(2*I-1).*(2*N-1).*(2*N+3) );
-            H = spdiags(q,0,n,n); %create diagonal sparse matrix
-        end 
-        
-        function [H,z] = makeZeeman(~,mu,m)
+        function H = makeZeeman(~,mu,m)
             n = length(m);
             z = -mu*m;
             H = spdiags(z,0,n,n); %only works if bfield is in z-direction
@@ -180,33 +239,57 @@ classdef Hamiltonian
             H = nan(3,size(dcY,1),size(dcY,2));
             H(1,:,:) = d0*dcX; 
             H(2,:,:) = d0*dcY; 
-            H(3,:,:) = d0*dcZ; 
+            H(3,:,:) = d0*dcZ;
+            H = squeeze(opts.dir(1)*H(1,:,:)+opts.dir(2)*H(2,:,:)+opts.dir(3)*H(3,:,:));
         end
-        % function H = makeACStark(obj,a0,a2, N,mN, opts)
-        %     arguments
-        %         obj
-        %         a0
-        %         a2
-        %         % basis
-        %         N
-        %         mN
-        %         opts.dir = [0,0,1]; %electric field direction
-        %         opts.pol = [0,0,1]; %sigma- = [1,-1i,0] relative to the propagation axis
-        %     end
-        %     n = length(N);
-        %     dir = opts.dir/norm(opts.dir);
-        % 
-        %     %The isotropic part is diagonal
-        %     H_acIsotropic = spdiags(-a0,0,n,n); %only works if bfield is in z-direction
-        % 
-        %     %the anisotropic is a bit more involved, but very similar to DC stark
-        %     TC = tensorC(N,mN, 2); %second order tensor, for rotational states
-        %     H = nan(3,size(dcY,1),size(dcY,2));
-        %     H(1,:,:) = d0*dcX; 
-        %     H(2,:,:) = d0*dcY; 
-        %     H(3,:,:) = d0*dcZ; 
-        % end
-        function s = makeSparseMatrix(~,X, iCol, iRow)
+        function H = makeACStark(obj,a0,a2, N,mN, opts)
+            % follows 10.1103/PhysRevResearch.2.013251  
+            % only for 1Sigma molecules as of now
+            % Requires multiplication by Intensity, not electric field
+            arguments
+                obj
+                a0
+                a2
+                N
+                mN
+                opts.Field struct = struct(dir=[1,0,0], pol=[0,0,1]); % should contain polarisation (Jones vector) and direction
+            end
+            e0 = 8.8541878128e-12;
+            c = 299792458;
+            n = length(N);
+            Field = opts.Field;
+            pol = reshape(Field.pol/norm(Field.pol),[],1); %make sure they're vectors
+            dir = reshape(Field.dir/norm(Field.dir),[],1);
+
+            if ~(dot(pol,dir)==0)
+                error("Polarisation should be perpendicular to propagation direction"); 
+            end
+            
+            %First find the matrix to rotate the beam/polarisation into the reference axis
+            rotAx = cross(dir,obj.ReferenceAxis); %rotation axis
+            angle = acos(dot(dir,obj.ReferenceAxis)); %rotation angle in radians
+            polRot = rotvec2mat3d(rotAx*angle)*pol;
+
+            %The isotropic part is diagonal
+            H0 = speye(n,n);
+
+            %the anisotropic is a bit more involved, but very similar to DC stark
+            % A0 = tensorC(N,mN, 0); %Is just diagonal
+            % A1 = tensorC(N,mN, 1);
+            if isempty(obj.electricGradient) %calculated multiple times
+                A2 = tensorC(N,mN, 2); %second order tensor, for rotational states
+            else
+                A2 = obj.electricGradient;
+            end
+            [~,~,P2] = coupleCartesianSpherically(polRot,conj(polRot));
+
+            % H0 = sphericalTensorDot(A0,P0);
+            % H1 = sphericalTensorDot(A1,P1);
+            H2 = sphericalTensorDot(A2,P2);
+            
+            H = -(a0*H0 + a2*H2)/(2*e0*c); %+a1*H1;
+        end
+        function s = makeSparseMatrix(~,X, iCol, iRow, matrixSize)
             % Prune lists
             pruneA = ~isnan(X);
             iCol = iCol(pruneA);
@@ -227,7 +310,7 @@ classdef Hamiltonian
             end
 
             %return
-            s = sparse(iRows,iCols,Xm);
+            s = sparse(iRows,iCols,Xm,matrixSize,matrixSize);
         end
     end
 end

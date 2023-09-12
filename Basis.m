@@ -140,6 +140,7 @@ methods
             warning("Matrix not really unitary, check code");
         end
     end
+    
 
     function [reducedStates,reducedMatrix, groupIdx] = reduceMatrix(obj,matrixToReduce,reduceToQs)
         keepCols = matches(obj.qnumbers,reduceToQs);

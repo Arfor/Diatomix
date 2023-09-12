@@ -25,8 +25,8 @@ for ip = 1:length(p)
                 for m2 = -n2:n2
                     colIdx = find((N == n1)&(mN==m1));
                     rowIdx = find((N == n2)&(mN==m2));
-                    
-                    if (m1+m2+p(ip))~=0; continue; end
+
+                    if (m1-m2+p(ip))~=0; continue; end
                     x = (-1)^m2 * sqrt((2*n2+1)*(2*n1+1))*...
                         Wigner3j([n2, rank, n1],[-m2, p(ip), m1])*Wigner3j([n2, rank, n1],[0,0,0]);
 

@@ -7,9 +7,12 @@ properties (Constant)
   name = "{}^{87}Rb";
   parity = 0; %fermion = 1, boson = 0
   spin = 3/2;
-  gFactor = 1.834;%from 10.1103/PhysRevA.78.033434
   electricQuadrupoleMoment = 1e6*-1.41 * 6.62606896e-34;%(eQq)_K (Hz) from Ospelkaus et al., PRL 104, 030402 (2010)
-  nuclearShielding = 3469*1e-6;%sigma(ppm) from 10.1103/PhysRevA.78.033434
+  % gFactor = 1.834;%from 10.1103/PhysRevA.78.033434
+  % nuclearShielding = 3469*1e-6;%sigma(ppm) from 10.1103/PhysRevA.78.033434
+
+  gFactor = 1.8295;%for comparison with diatomic-py
+  nuclearShielding = 0;
 end
 properties
    transitions
