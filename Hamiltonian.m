@@ -88,7 +88,7 @@ classdef Hamiltonian
                 %Tensor Spin-Spin Coupling
                 obj.hyperfine.spinSpinTensor = obj.tensorNuclear(Mol.c3,i1,i2, UCBasis); 
 
-                obj.hyperfine.total = obj.makeHyperfine;
+                obj.hyperfine.total = obj.makeHyperfine();
                 %% Zeeman
                 g1 = Atom1.gFactor; sig1 = Atom1.nuclearShielding;
                 g2 = Atom2.gFactor; sig2 = Atom2.nuclearShielding;
@@ -138,6 +138,8 @@ classdef Hamiltonian
             QM = obj.quadrupoleMoment(I,mI);
             H = sphericalTensorDot(QM,obj.electricGradient)/4;
         end 
+        % function calcElectricGradient(obj)       
+        % end
         % function [H,q] = electricQuadrupole(~,Q,N,I,Fi) 
         %     n = length(N);            
         %     NdotI = 0.5*(Fi.*(Fi+1) - N.*(N+1) - I.*(I+1));            
@@ -170,7 +172,7 @@ classdef Hamiltonian
                             rowIdx = find((I == I1)&(mI==mI2));
         
                             if (-mI1+mI2+p(ip))~=0; continue; end
-                            x = (-1)^(I1-mI1) * Wigner3j([I1, 2, I1],[-mI1, p(ip), mI2])* w2;
+                            x = (-1)^(I1-mI1) * Wigner3j([I1, 2, I1],[-mI1, p(ip), mI2]) / w2;
         
                             X(calcCount) = x;
                             iRow{calcCount} = rowIdx;

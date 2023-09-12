@@ -1,7 +1,6 @@
 classdef Basis
     %BASIS Summary of this class goes here
     %   Detailed explanation goes here
-    
 properties
     states
     momenta

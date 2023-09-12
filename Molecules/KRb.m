@@ -56,6 +56,7 @@ classdef KRb
                 idx=6;
             end
             %   Constants taken from DOI: 10.1103/PhysRevA.78.033434
+            % Using Till's constants for K40Rb87
             h = 6.62606896e-34; 
             c1 = [19.9,19.8,-24.2,-24.1,10.5,10.4] * h;%for K
             c2 = [127.0,427.5,124.8,420.1,122.8,413.1] * h;%for Rb
@@ -64,8 +65,10 @@ classdef KRb
             gr = [0.0144,0.0142,0.0141,0.0140,0.0139,0.0138];
             Brot = 1e9*[1.142,1.134,1.123,1.1139514,1.104,1.096] * h; 
             Drot = [0,0,0,0,0,0] * h; 
-            QK =    1e6*[-0.245,-0.245,0.306,0.306,-0.298,-0.298]*h; %nuclear electric quadrupole constant (at position of K) 
-            QRb =   1e6*[-3.142,-1.520,-3.142,-1.520,-3.142,-1.520]*h;%nuclear electric quadrupole constant (at position of Rb) 
+            % QK =    1e6*[-0.245,-0.245,0.306,0.306,-0.298,-0.298]*h; %nuclear electric quadrupole constant (at position of K) 
+            % QRb =   1e6*[-3.142,-1.520,-3.142,-1.520,-3.142,-1.520]*h;%nuclear electric quadrupole constant (at position of Rb) 
+            QK =    1e6*[-0.245,-0.245,0.452,0.452,-0.298,-0.298]*h; %Diatomic-py / Till's constants
+            QRb =   1e6*[-3.142,-1.308,-3.142,-1.308,-3.142,-1.308]*h;
             a0 =   1e6*[0,0,0,0.553,0,0]*h; %h*Hz/(W/m^2) 
             a2 =   1e6*[0,0,0,0.447,0,0]*h;
             obj.c3 = c3(idx);

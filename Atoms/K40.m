@@ -7,8 +7,8 @@ properties (Constant)
   name = "{}^{40}K";
   parity = 1; %fermion = 1, boson = 0
   spin = 4; 
-  gFactor = -0.324;%from 10.1103/PhysRevA.78.033434
   electricQuadrupoleMoment = 1e6*0.45 * 6.62606896e-34;%(eQq)_K (Hz) from Ospelkaus et al., PRL 104, 030402 (2010)
+  gFactor = -0.324;%from 10.1103/PhysRevA.78.033434#
   nuclearShielding = 1321*1e-6;%sigma from 10.1103/PhysRevA.78.033434
 end
 properties
