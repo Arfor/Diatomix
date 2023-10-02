@@ -33,8 +33,10 @@ classdef NaCs
                 obj.Atom2=Cs133;
                 idx=1;
             end
+            eps0 = 8.8541878128e-12;
+            bohr = 5.29177210903e-11;
+            h = 6.62607015e-34; 
             %   Constants taken from DOI: 
-            h = 6.62606896e-34; 
             c1 = [14.2] * h;%for Na
             c2 = [854.5] * h;%for CS
             c3 = [105.6] * h;
@@ -44,6 +46,8 @@ classdef NaCs
             Drot = [0] * h; 
             Q1 = 1e6*[-0.097]*h; %nuclear electric quadrupole constant (at position of Atom 1) 
             Q2 = 1e6*[0.15]*h;%nuclear electric quadrupole constant (at position of Atom 2) 
+            a0 = [935.399]*4*pi*eps0*bohr^3; 
+            a2 = [936.721]*4*pi*eps0*bohr^3;
 
             obj.c1 = c1(idx);
             obj.c2 = c2(idx);            
@@ -54,6 +58,8 @@ classdef NaCs
             obj.Drot = Drot(idx);
             obj.Q1 = Q1(idx);
             obj.Q2 = Q2(idx);
+            obj.a0 = a0;
+            obj.a2 = a2;
 
             obj.name = obj.Atom1.name + obj.Atom2.name;
         end

@@ -38,18 +38,18 @@ classdef RbCs
                 obj.Atom2=Cs133;
                 idx=1;
             end
-            eps0 = 8.8542e-12;
-            bohr = 5.2918e-11;
-            h = 6.62606896e-34; 
+            eps0 = 8.8541878128e-12;
+            bohr = 5.29177210903e-11;
+            h = 6.62607015e-34; 
             %   Constants taken from DOI: 10.1038/s41567-021-01328-7
             c1 = [98.4] * h;%for Rb
             c2 = [194.2] * h;%for Cs
             c3 = [192.4] * h;
             c4 = [19.0189557e3] * h;
             gr = [0.0062];
-            Brot = 1e9*[0.49174] * h; 
+            Brot = 1e6*[490.173994326310] * h; 
             Drot = [207.3] * h; 
-            Q1 = 1e6*[-0.80929]*h; %nuclear electric quadrupole constant (at position of Atom 1) 
+            Q1 = 1e3*[-809.29]*h; %nuclear electric quadrupole constant (at position of Atom 1) 
             Q2 = 1e3*[59.98]*h;%nuclear electric quadrupole constant (at position of Atom 2) 
             a0 = [2020]*4*pi*eps0*bohr^3; 
             a2 = [1997]*4*pi*eps0*bohr^3;

@@ -7,12 +7,12 @@ properties (Constant)
   name = "{}^{133}Cs";
   parity = 0; %fermion = 1, boson = 0
   spin = 7/2;
-  % gFactor = 0.738;%
+  gFactor = 0.738;%
   % electricQuadrupoleMoment = 1e6*-1.41 * 6.62606896e-34;%(eQq)_Cs (Hz) 
-  % nuclearShielding = 6278.7e-6;%sigma(ppm)
+  nuclearShielding = 6278.7e-6;%sigma(ppm)
 
-  gFactor = 0.7331; %for comparison with diatomic-py
-  nuclearShielding = 0;
+  % gFactor = 0.7331; %for comparison with diatomic-py
+  % nuclearShielding = 0;
 end
 properties
    transitions

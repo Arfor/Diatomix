@@ -69,8 +69,8 @@ classdef KRb
             % QRb =   1e6*[-3.142,-1.520,-3.142,-1.520,-3.142,-1.520]*h;%nuclear electric quadrupole constant (at position of Rb) 
             QK =    1e6*[-0.245,-0.245,0.452,0.452,-0.298,-0.298]*h; %Diatomic-py / Till's constants
             QRb =   1e6*[-3.142,-1.308,-3.142,-1.308,-3.142,-1.308]*h;
-            a0 =   1e6*[0,0,0,0.553,0,0]*h; %h*Hz/(W/m^2) 
-            a2 =   1e6*[0,0,0,0.447,0,0]*h;
+            a0 =   1e-4*[0,0,0,55.3,0,0]*h; %h*Hz/(W/m^2) 
+            a2 =   1e-4*[0,0,0,44.7,0,0]*h;
             obj.c3 = c3(idx);
             obj.c4 = c4(idx);
             obj.gr = gr(idx);
@@ -80,8 +80,8 @@ classdef KRb
             obj.c2 = c2(idx);
             obj.Q1 = QK(idx);
             obj.Q2 = QRb(idx);
-            obj.a0 = QRb(idx);
-            obj.a2 = QRb(idx);
+            obj.a0 = a0(idx);
+            obj.a2 = a2(idx);
 
             obj.name = obj.Atom1.name + obj.Atom2.name;
         end
