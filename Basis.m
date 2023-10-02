@@ -140,7 +140,6 @@ methods
         end
     end
     
-
     function [reducedStates,reducedMatrix, groupIdx] = reduceMatrix(obj,matrixToReduce,reduceToQs)
         keepCols = matches(obj.qnumbers,reduceToQs);
         [reducedStates,~,groupIdx]=unique(obj.states(:,keepCols),"rows", "stable");

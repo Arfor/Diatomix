@@ -1,4 +1,4 @@
-classdef Hamiltonian
+classdef Hamiltonian < handle
     %HAMILTONIAN Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -106,6 +106,7 @@ classdef Hamiltonian
             s = 0.5*c4*(jtot.*(jtot+1) - j1.*(j1+1) - j2.*(j2+1));
             H = spdiags(s,0,n,n); %create diagonal sparse matrix
         end
+
         function H = tensorNuclear(obj,c3,j1,j2, basis)           
             assert(length(j1.js)==1 && length(j2.js)==1); %Only checked for single vectors, do some thorough checking of basis.AngMomOperators first if you want to extend functionality!
             I1 = j1.js;
@@ -120,24 +121,27 @@ classdef Hamiltonian
             end
             T2_Coupled = basis.coupleSpherically(j1,j2);
             
-            H = sqrt(6)*c3*sphericalTensorDot(T2C,T2_Coupled);
+            H = sqrt(6)*c3*sphericalTensorDot(T2C,T2_Coupled); 
         end
+
         function [H,r] = rotational(~, N, Brot, Drot)
             n = length(N);
             N2 = N.*(N+1);
             r = Brot*N2 - Drot*N2.*N2;
-            % r = Brot*N.^2 - Drot*(N.^2).*(N.^2);
+            %r = Brot*N.^2 - Drot*(N.^2).*(N.^2);
             H = spdiags(r ,0,n,n); %create diagonal sparse matrix
-        end    
+        end
+
         function H = electricQuadrupole(obj,I,mI,basis) 
             if isempty(obj.electricGradient)
-                N = basis.getStates("N");
-                mN = basis.getStates("mN");
+                N = obj.Basis.getStates("N");
+                mN = obj.Basis.getStates("mN");
                 obj.electricGradient = tensorC(N,mN, 2);
             end
             QM = obj.quadrupoleMoment(I,mI);
             H = sphericalTensorDot(QM,obj.electricGradient)/4;
-        end 
+        end
+
         % function calcElectricGradient(obj)       
         % end
         % function [H,q] = electricQuadrupole(~,Q,N,I,Fi) 
@@ -242,7 +246,7 @@ classdef Hamiltonian
             H(1,:,:) = d0*dcX; 
             H(2,:,:) = d0*dcY; 
             H(3,:,:) = d0*dcZ;
-            H = squeeze(opts.dir(1)*H(1,:,:)+opts.dir(2)*H(2,:,:)+opts.dir(3)*H(3,:,:));
+            H = -squeeze(opts.dir(1)*H(1,:,:)+opts.dir(2)*H(2,:,:)+opts.dir(3)*H(3,:,:));
         end
         function H = makeACStark(obj,a0,a2, N,mN, opts)
             % follows 10.1103/PhysRevResearch.2.013251  
@@ -275,7 +279,10 @@ classdef Hamiltonian
             %The isotropic part is diagonal
             H0 = speye(n,n);
 
-            %the anisotropic is a bit more involved, but very similar to DC stark
+            %The anisotropic is a bit more involved, but very similar to DC stark
+            %The constants in front of the polarisation and polarisability
+            %tensors follow the convention from Blackmore et al. https://doi.org/10.1103/PhysRevA.102.053316
+
             % A0 = tensorC(N,mN, 0); %Is just diagonal
             % A1 = tensorC(N,mN, 1);
             if isempty(obj.electricGradient) %calculated multiple times
@@ -283,13 +290,16 @@ classdef Hamiltonian
             else
                 A2 = obj.electricGradient;
             end
-            [~,~,P2] = coupleCartesianSpherically(polRot,conj(polRot));
+            [P0,P1,P2] = coupleCartesianSpherically(polRot,conj(polRot)); % Polarisation Tensor
+            P0 = cellfun(@(x) -sqrt(3)*x,P0,'un',0); 
+            P1 = cellfun(@(x) -sqrt(2)*x,P1,'un',0); %eugh matlab, sometimes....
+            P2 = cellfun(@(x) sqrt(3/2)*x,P2,'un',0);
+            % A2 = A2;
 
             % H0 = sphericalTensorDot(A0,P0);
             % H1 = sphericalTensorDot(A1,P1);
-            H2 = sphericalTensorDot(A2,P2);
-            
-            H = -(a0*H0 + a2*H2)/(2*e0*c); %+a1*H1;
+            H2 = sphericalTensorDot(A2,P2); %factor 2/sqrt(6) missing for some reason
+            H = -(2/(e0*c))*(a0*H0 + a2*H2)/4; %+a1*H1;
         end
         function s = makeSparseMatrix(~,X, iCol, iRow, matrixSize)
             % Prune lists

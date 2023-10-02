@@ -1,39 +1,40 @@
-function [adiabat, adiabatStates, diabat, diabatStates] = findAdiabat(x,y,states, xIdx,yIdx)
+function [diabat, diabatStates, adiabat, adiabatStates] = findAdiabat(x,y,states, xIdx,yIdx)
 %[adiabat, adiabatStates, diabat, diabatStates] = findAdiabat(x,y,states, xIdx,yIdx)
 % x = array of x values
 % y = spectrum for certain number of states
 % states = array containing the state-composition of every state in y
-% xIdx,yIdx = starting indices to look for adiabat  
+% xIdx,yIdx = starting indices to look for adiabat 
+% adiabats are under the constraint that the mF cannot change
 s = size(states);
 nStates = s(end);
 %Checks adjacent states to determine least change in state
-diabat = y(:,yIdx); %follow xth energy state, stores energies
-diabatStates = abs(squeeze(states(:,:,yIdx))).^2;
+adiabat = y(:,yIdx); %follow xth energy state, stores energies
+adiabatStates = abs(squeeze(states(:,:,yIdx))).^2;
 
-adiabatYidx = nan(1,length(x)); %stores yIdx, not energy
-adiabat = nan(1,length(x)); %stores yIdx, not energy
+diabatYidx = nan(1,length(x)); %stores yIdx, not energy
+diabat = nan(1,length(x)); %stores yIdx, not energy
 
-adiabatYidx(xIdx) = yIdx;
-adiabat(xIdx) = y(xIdx,yIdx);
-adiabatStates = nan(size(diabatStates));
-adiabatStates(xIdx,:) = (squeeze(states(xIdx,:,yIdx)));
+diabatYidx(xIdx) = yIdx;
+diabat(xIdx) = y(xIdx,yIdx);
+diabatStates = nan(size(adiabatStates));
+diabatStates(xIdx,:) = (squeeze(states(xIdx,:,yIdx)));
 % [~, sIdx] = sortrows(diabatStates(xIdx,:)'.^2,"descend");
 adjC = 3; %set maximum number of adjacent states to look at
 for k=xIdx:(length(x)-1) %forward loop
-    stateNow = abs(squeeze(states(k,:,adiabatYidx(k))));
-    stateSearch =adiabatYidx(k)-adjC:adiabatYidx(k)+adjC; stateSearch(stateSearch<=0)=[];
+    stateNow = abs(squeeze(states(k,:,diabatYidx(k))));
+    stateSearch =diabatYidx(k)-adjC:diabatYidx(k)+adjC; stateSearch(stateSearch<=0)=[];
     statesNext = abs(squeeze(states(k+1,:,stateSearch)));
     [~,S]=sort(sum((statesNext.*stateNow'),1)); %computes overlap integral
     idx = stateSearch(S(end)); %restrict search to adjacent states
-    if abs(idx-adiabatYidx(k))>3
+    if abs(idx-diabatYidx(k))>3
         idx = stateSearch(S(end-1));
     end
-    adiabatYidx(k+1) = idx;
-    adiabat(k+1) = y(k+1,idx);
-    adiabatStates(k+1,:) = (squeeze(states(k+1,:,idx)));
+    diabatYidx(k+1) = idx;
+    diabat(k+1) = y(k+1,idx);
+    diabatStates(k+1,:) = (squeeze(states(k+1,:,idx)));
 end
 for k=(xIdx-1):-1:1 %backward loop
-    stateIdx = adiabatYidx(k+1);
+    stateIdx = diabatYidx(k+1);
     stateNow = abs(squeeze(states(k+1,:,stateIdx)));
     stateSearch =stateIdx-adjC:stateIdx+adjC; 
     stateSearch(stateSearch<=0)=[];stateSearch(stateSearch>nStates)=[];
@@ -43,9 +44,9 @@ for k=(xIdx-1):-1:1 %backward loop
     if abs(idx-stateIdx)>3
         idx = stateSearch(S(end-1));
     end
-    adiabatYidx(k) = idx;
-    adiabat(k) = y(k,idx);
-    adiabatStates(k,:) = (squeeze(states(k,:,idx)));
+    diabatYidx(k) = idx;
+    diabat(k) = y(k,idx);
+    diabatStates(k,:) = (squeeze(states(k,:,idx)));
 end    
 
 end

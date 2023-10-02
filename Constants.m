@@ -1,6 +1,6 @@
 classdef Constants
    properties (Constant)
-      h     = 6.62606896e-34;           % Planck's constant (J*s)
+      h     = 6.62607015e-34;           % Planck's constant (J*s)
       hbar  = 1.054571817e-34;          % Reduced Planck's constant (J*s)
       atomicMass = 1.66053906660e-27;   % Unified Atomic Mass (kg)
       kB    = 1.380649e-23;             % Boltzmann constant (J/K)
