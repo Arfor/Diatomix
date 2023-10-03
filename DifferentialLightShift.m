@@ -80,6 +80,7 @@ Ham = Hamiltonian(Molecule = RbCs, Fields=Fields, maxN=maxN);
 h_tmp = Ham.hyperfine;
 hyperfine = h_tmp.electricQuadrupole+h_tmp.rigidRotor + h_tmp.spinSpinScalar+ h_tmp.spinRotation;
 H0 = hyperfine + B.value*Ham.zeeman + E.value*Ham.dc_stark;
+N = Base.getStates("N");
 mN = Base.getStates("mN");
 I.value = [0:40]*1e7;
 I.dir = [0,1,0];
@@ -118,7 +119,7 @@ end
 [~,idx1] = max(overlap1);
 %%
 figure(97);clf;
-hold on;
+hold on; box on; grid on;
 selectStates = N==1;
 GSenergy = energyMap(:,:,idx0);
 offset = -76e3;
