@@ -3,6 +3,7 @@ classdef Constants
       h     = 6.62607015e-34;           % Planck's constant (J*s)
       hbar  = 1.054571817e-34;          % Reduced Planck's constant (J*s)
       atomicMass = 1.66053906660e-27;   % Unified Atomic Mass (kg)
+      electronMass = 9.1093837015e-31;  % Electron rest mass (kg)
       kB    = 1.380649e-23;             % Boltzmann constant (J/K)
       eV    = 1.602176634e-19;          % electronvolt (J)
       qE    = 1.602176634e-19;          % elementary charge (C)

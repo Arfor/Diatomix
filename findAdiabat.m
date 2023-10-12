@@ -1,5 +1,5 @@
 function [diabat, diabatStates, adiabat, adiabatStates] = findAdiabat(x,y,states, xIdx,yIdx)
-%[adiabat, adiabatStates, diabat, diabatStates] = findAdiabat(x,y,states, xIdx,yIdx)
+%[diabat, diabatStates, adiabat, adiabatStates] = findAdiabat(x,y,states, xIdx,yIdx)
 % x = array of x values
 % y = spectrum for certain number of states
 % states = array containing the state-composition of every state in y
@@ -7,10 +7,9 @@ function [diabat, diabatStates, adiabat, adiabatStates] = findAdiabat(x,y,states
 % adiabats are under the constraint that the mF cannot change
 s = size(states);
 nStates = s(end);
-%Checks adjacent states to determine least change in state
 adiabat = y(:,yIdx); %follow xth energy state, stores energies
 adiabatStates = abs(squeeze(states(:,:,yIdx))).^2;
-
+%Checks adjacent states to determine least change in state
 diabatYidx = nan(1,length(x)); %stores yIdx, not energy
 diabat = nan(1,length(x)); %stores yIdx, not energy
 
