@@ -116,6 +116,7 @@ classdef Hamiltonian < handle
             
             if isempty(obj.electricGradient)
                 T2C = tensorC(N,mN, 2); 
+                obj.electricGradient = T2C;
             else
                 T2C = obj.electricGradient;
             end
@@ -140,18 +141,6 @@ classdef Hamiltonian < handle
             QM = obj.quadrupoleMoment(I,mI);
             H = sphericalTensorDot(QM,obj.electricGradient)/4;
         end
-
-        % function calcElectricGradient(obj)       
-        % end
-        % function [H,q] = electricQuadrupole(~,Q,N,I,Fi) 
-        %     n = length(N);            
-        %     NdotI = 0.5*(Fi.*(Fi+1) - N.*(N+1) - I.*(I+1));            
-        %     q = -Q*( 3*(NdotI.^2) + 1.5*NdotI - I.*(I+1).*N.*(N+1)) ./ ( 2*I.*(2*I-1).*(2*N-1).*(2*N+3) );
-        %     H = spdiags(q,0,n,n); %create diagonal sparse matrix
-        % 
-        % 
-        % 
-        % end 
         function T = quadrupoleMoment(obj,I,mI)
             %Calculate nuclear electric quadrupole moment and return 2nd
             %order Tensor
@@ -187,7 +176,6 @@ classdef Hamiltonian < handle
                 T{ip} = obj.makeSparseMatrix(X, iCol, iRow,matrixSize);
             end
         end
-
         function H = makeHyperfine(obj, opts)
             arguments
                 obj
@@ -234,14 +222,19 @@ classdef Hamiltonian < handle
             if isempty(obj.dipoleOperator)
                 N = obj.Basis.getStates("N");
                 mN = obj.Basis.getStates("mN");
-                obj.dipoleOperator = tensorC(N,mN,1);
+                tC = tensorC(N,mN,1);
+                obj.dipoleOperator = {tC{3},tC{2},tC{1}}; %tensorC returns sigma_plus as tC{1}
             end
             TC = obj.dipoleOperator; 
             dcZ = TC{2};
             hm = TC{1}; 
+            hp = TC{3}; 
 
-            dcX = -(1/sqrt(2))*(hm + conj(hm'));
-            dcY = 1i*(1/sqrt(2))*(hm - conj(hm'));
+            % dcX = -(1/sqrt(2))*(hm + conj(hm'));
+            % dcY = (1i/sqrt(2))*(hm - conj(hm'));
+
+            dcX = -(1/sqrt(2))*(hm-hp);
+            dcY = (1i/sqrt(2))*(hm+hp);
 
             H = nan(3,size(dcY,1),size(dcY,2));
             H(1,:,:) = d0*dcX; 
@@ -288,6 +281,7 @@ classdef Hamiltonian < handle
             % A1 = tensorC(N,mN, 1);
             if isempty(obj.electricGradient) %calculated multiple times
                 A2 = tensorC(N,mN, 2); %second order tensor, for rotational states
+                obj.electricGradient = A2;
             else
                 A2 = obj.electricGradient;
             end
