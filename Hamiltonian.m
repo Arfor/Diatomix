@@ -220,8 +220,8 @@ classdef Hamiltonian < handle
             dir = opts.dir/norm(opts.dir);
 
             if isempty(obj.dipoleOperator)
-                N = obj.Basis.getStates("N");
-                mN = obj.Basis.getStates("mN");
+                % N = obj.Basis.getStates("N");
+                % mN = obj.Basis.getStates("mN");
                 tC = tensorC(N,mN,1);
                 obj.dipoleOperator = {tC{3},tC{2},tC{1}}; %tensorC returns sigma_plus as tC{1}
             end
