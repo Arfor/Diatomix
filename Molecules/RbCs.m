@@ -1,5 +1,5 @@
-classdef RbCs
-    %RbCs Summary of this class goes here
+classdef RbCs < Molecule
+    %RbCs 
 %  Most recent Rb87Cs133 Constants are given in the supplementary 
 % of Gregory et al., Nat. Phys. 17, 1149-1153 (2021)
 % https://www.nature.com/articles/s41567-021-01328-7
@@ -8,22 +8,6 @@ classdef RbCs
 % https://journals.aps.org/pra/abstract/10.1103/PhysRevA.102.053316    
     properties (Constant)
         d0  = 1.225 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m  from Ni et al., Science 322, 231-235 (2008) 0.574
-    end
-    properties
-        name    %
-        Atom1   %Rb
-        Atom2   %Cs
-        c1      %for Atom 1
-        c2      %for Atom 2
-        c3      %
-        c4      %
-        gr      %Molecular Magnetic g-factor
-        Brot    %Rotational constant
-        Drot    %Centrifugal constant
-        Q1      %nuclear electric quadrupole constant (at position of Atom1) 
-        Q2      %nuclear electric quadrupole constant (at position of Atom2) 
-        a0      %h*Hz/(W/cm^2) at 1064nm
-        a2      % tensor polarisability at 1064nm
     end
     
     methods

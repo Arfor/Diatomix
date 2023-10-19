@@ -1,24 +1,8 @@
-classdef NaCs
-    %NaCs Summary of this class goes here
+classdef NaCs < Molecule
+    %NaCs 
 %   Parameters from Aldegunde & Hutson (2017): 10.1103/PhysRevA.96.042506
     properties (Constant)
         d0  = 4.75 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m 
-    end
-    properties
-        name    %
-        Atom1   %
-        Atom2   %
-        c1      %for Atom 1
-        c2      %for Atom 2
-        c3      %
-        c4      %
-        gr      %Molecular Magnetic g-factor
-        Brot    %Rotational constant
-        Drot    %Centrifugal constant
-        Q1      %nuclear electric quadrupole constant (at position of Atom1) 
-        Q2      %nuclear electric quadrupole constant (at position of Atom2) 
-        a0      %h*Hz/(W/cm^2) at 1064nm
-        a2      % tensor polarisability at 1064nm
     end
     
     methods

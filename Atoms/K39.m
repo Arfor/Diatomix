@@ -1,6 +1,5 @@
-classdef K39 
-%RB87 Summary of this class goes here
-%   Detailed explanation goes here
+classdef K39 < Atom
+%K39
 
 properties (Constant)
   mass = 38.963706487*1.66053906660e-27; %kg

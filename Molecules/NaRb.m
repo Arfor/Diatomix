@@ -1,27 +1,11 @@
-classdef NaRb
-%NaRb Summary of this class goes here
+classdef NaRb < Molecule
+%NaRb
 % Parameters from Guo et al., PRA 97, 020501(R) (2018)
 % https://journals.aps.org/pra/abstract/10.1103/PhysRevA.97.020501
 % and from Aldegunde et al., PRA 96, 042506 (2017)
 % https://journals.aps.org/pra/abstract/10.1103/PhysRevA.96.042506
     properties (Constant)
         d0  = 3.2 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m
-    end
-    properties
-        name    %
-        Atom1   %Rb
-        Atom2   %Cs
-        c1      %for Atom 1
-        c2      %for Atom 2
-        c3      %
-        c4      %
-        gr      %Molecular Magnetic g-factor
-        Brot    %Rotational constant
-        Drot    %Centrifugal constant
-        Q1      %nuclear electric quadrupole constant (at position of Atom1) 
-        Q2      %nuclear electric quadrupole constant (at position of Atom2) 
-        a0      %h*Hz/(W/cm^2)
-        a2      % tensor polarisability
     end
     
     methods

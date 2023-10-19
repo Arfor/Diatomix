@@ -1,6 +1,5 @@
-classdef Na23 
-%RB87 Summary of this class goes here
-%   Detailed explanation goes here
+classdef Na23 < Atom
+%Na23
 
 properties (Constant)
   mass = 22.98976928*1.66053906660e-27; %kg

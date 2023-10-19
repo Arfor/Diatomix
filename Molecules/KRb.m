@@ -1,26 +1,9 @@
-classdef KRb
-    %KRB Summary of this class goes here
-    %   Detailed explanation goes here
+classdef KRb < Molecule
+    %KRB 
     
     properties (Constant)
         % d0  = 0.566 * 3.33564e-30; %Dipole Moment (V/m), 1Debye = 3.33564e-30 C*m  from Ni et al., Science 322, 231-235 (2008) 0.574
         d0  = 0.573999 * 3.33564e-30; %Dipole Moment (V/m) Till
-    end
-    properties
-        name    %
-        Atom1   %K
-        Atom2   %Rb
-        c1      %for Atom 1
-        c2      %for Atom 2
-        c3      %
-        c4      %
-        gr      %Molecular Magnetic g-factor
-        Brot    %Rotational constant
-        Drot    %Centrifugal constant
-        Q1      %nuclear electric quadrupole constant (at position of Atom1) 
-        Q2      %nuclear electric quadrupole constant (at position of Atom2) 
-        a0      %h*Hz/(W/cm^2) at 1064nm
-        a2      % tensor polarisability at 1064nm
     end
     
     methods

@@ -1,6 +1,5 @@
-classdef Rb85 
-%RB87 Summary of this class goes here
-%   Detailed explanation goes here
+classdef Rb85 < Atom
+%RB85
 
 properties (Constant)
   mass = 84.911789738*1.66053906660e-27; %kg

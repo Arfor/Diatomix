@@ -1,6 +1,5 @@
-classdef K40 
-%RB87 Summary of this class goes here
-%   Detailed explanation goes here
+classdef K40 < Atom
+%K40
 
 properties (Constant)
   mass = 39.96399817*1.66053906660e-27; %kg

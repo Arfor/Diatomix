@@ -1,5 +1,5 @@
-classdef Cs133 
-%RB87 Summary of this class goes here
+classdef Cs133 < Atom
+%Cs133
 %   Parameters from Aldegunde & Hutson (2017): 10.1103/PhysRevA.96.042506
 
 properties (Constant)
