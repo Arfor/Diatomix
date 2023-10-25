@@ -21,8 +21,7 @@ diabatStates(xIdx,:) = (squeeze(states(xIdx,:,yIdx)));
 adjC = 3; %set maximum number of adjacent states to look at
 for k=xIdx:(length(x)-1) %forward loop
     stateNow = abs(squeeze(states(k,:,diabatYidx(k))));
-    stateSearch = diabatYidx(k)-adjC:diabatYidx(k)+adjC; 
-    stateSearch(stateSearch<=0)=[];stateSearch(stateSearch>nStates)=[];
+    stateSearch = diabatYidx(k)-adjC:diabatYidx(k)+adjC; stateSearch(stateSearch<=0)=[];
     statesNext = abs(squeeze(states(k+1,:,stateSearch)));
     [~,S]=sort(sum((statesNext.*stateNow'),1)); %computes overlap integral
     idx = stateSearch(S(end)); %restrict search to adjacent states
