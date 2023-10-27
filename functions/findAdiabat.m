@@ -20,11 +20,11 @@ diabatStates(xIdx,:) = (squeeze(states(xIdx,:,yIdx)));
 % [~, sIdx] = sortrows(diabatStates(xIdx,:)'.^2,"descend");
 adjC = 3; %set maximum number of adjacent states to look at
 for k=xIdx:(length(x)-1) %forward loop
-    stateNow = abs(squeeze(states(k,:,diabatYidx(k))));
+    stateNow = (squeeze(states(k,:,diabatYidx(k))));
     stateSearch = diabatYidx(k)-adjC:diabatYidx(k)+adjC; 
     stateSearch(stateSearch<=0)=[];stateSearch(stateSearch>nStates)=[];
-    statesNext = abs(squeeze(states(k+1,:,stateSearch)));
-    [~,S]=sort(sum((statesNext.*stateNow'),1)); %computes overlap integral
+    statesNext = conj(squeeze(states(k+1,:,stateSearch)));
+    [~,S]=sort(abs(sum((statesNext.*stateNow'),1))); %computes overlap integral
     idx = stateSearch(S(end)); %restrict search to adjacent states
     if abs(idx-diabatYidx(k))>3
         idx = stateSearch(S(end-1));
@@ -35,11 +35,11 @@ for k=xIdx:(length(x)-1) %forward loop
 end
 for k=(xIdx-1):-1:1 %backward loop
     stateIdx = diabatYidx(k+1);
-    stateNow = abs(squeeze(states(k+1,:,stateIdx)));
+    stateNow = (squeeze(states(k+1,:,stateIdx)));
     stateSearch =stateIdx-adjC:stateIdx+adjC; 
     stateSearch(stateSearch<=0)=[];stateSearch(stateSearch>nStates)=[];
-    statesPrevious = abs(squeeze(states(k,:,stateSearch))); 
-    [~,S]=sort(sum((statesPrevious.*stateNow'),1)); %maximum overlap
+    statesPrevious = conj(squeeze(states(k,:,stateSearch))); 
+    [~,S]=sort(abs(sum((statesPrevious.*stateNow'),1))); %maximum overlap
     idx = stateSearch(S(end));
     if abs(idx-stateIdx)>3
         idx = stateSearch(S(end-1));

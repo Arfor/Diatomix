@@ -1,5 +1,5 @@
-function T = tensorC(N,mN, rank)
-% T = TensorC(N,mN, component, rank)
+function T = tensorC(N, mN, rank)
+% T = TensorC(N,mN, rank)
 % Computes the spherical tensors for the spherical harmonics in the
 % rotational basis
 arguments
@@ -23,12 +23,12 @@ for ip = 1:length(p)
         for n2 = reshape(uN,1,[]) %make sure they're row vectors
             for m1 = -n1:n1
                 for m2 = -n2:n2
-                    colIdx = find((N == n1)&(mN==m1));
-                    rowIdx = find((N == n2)&(mN==m2));
+                    rowIdx = find((N == n1)&(mN==m1));
+                    colIdx = find((N == n2)&(mN==m2));
 
-                    if (m1-m2+p(ip))~=0; continue; end
-                    x = (-1)^m2 * sqrt((2*n2+1)*(2*n1+1))*...
-                        Wigner3j([n2, rank, n1],[-m2, p(ip), m1])*Wigner3j([n2, rank, n1],[0,0,0]);
+                    if (-m1+m2+p(ip))~=0; continue; end
+                    x = (-1)^m1 * sqrt((2*n1+1)*(2*n2+1))*...
+                        Wigner3j([n1, rank, n2],[-m1, p(ip), m2])*Wigner3j([n1, rank, n2],[0,0,0]);
 
                     X(calcCount) = x;
                     iRow{calcCount} = rowIdx;
@@ -38,7 +38,7 @@ for ip = 1:length(p)
             end
         end
     end
-    T{ip} = makeSparseMatrix(X, iCol, iRow, matrixSize);
+    T{ip} = round(makeSparseMatrix(X, iCol, iRow, matrixSize),12); 
 end
 
 function s = makeSparseMatrix(X, iCol, iRow, mSize)
