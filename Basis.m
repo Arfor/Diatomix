@@ -240,7 +240,7 @@ methods
         Jplus = makeSparseMatrix(obj, X, iCol, iRow, nStates);
     end
 
-    function J = AngMomOperators(obj, mom)
+    function [Jx,Jy,Jz,Jmin,Jplus] = AngMomOperators(obj, mom)
         % J = AngMomOperators(obj, mom)
         % returns J = {Jx,Jy,Jz,Jmin,Jplus};
         Jplus = raisingOperator(obj, mom);
@@ -248,19 +248,15 @@ methods
         Jx = 0.5*(Jplus + Jmin);
         Jy = -1i*0.5*(Jplus - Jmin);
         Jz = 0.5*(Jplus*Jmin - Jmin*Jplus);
-        
-        J = {Jx,Jy,Jz,Jmin,Jplus};
     end
 
     function T = coupleSpherically(obj,j1,j2)
         % returns spherical tensor of rank 2
         % see Brown and Carrington Eq. 5.113-5.118
         T = cell(5,1); %rank 2 tensor
-        J1 = obj.AngMomOperators(j1);
-        J1x = J1{1}; J1y = J1{2}; J1z=J1{3};
+        [J1x,J1y,J1z,~,~] = obj.AngMomOperators(j1);
 
-        J2 = obj.AngMomOperators(j2);
-        J2x = J2{1}; J2y = J2{2}; J2z=J2{3};
+        [J2x,J2y,J2z,~,~] =  obj.AngMomOperators(j2);
         
         T{1} = (1/2)*(J1x*J2x - J1y*J2y - 1i*(J1x*J2y + J1y*J2x));%T2_-2
         T{2} = (1/2)*(J1x*J2z + J1z*J2x - 1i*(J1y*J2z + J1z*J2y));%T2_-1

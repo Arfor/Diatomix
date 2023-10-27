@@ -94,7 +94,8 @@ classdef Hamiltonian < handle
                 g1 = Atom1.gFactor; sig1 = Atom1.nuclearShielding;
                 g2 = Atom2.gFactor; sig2 = Atom2.nuclearShielding;
                 st = UCBasis.getStates("all");
-                obj.zeeman = obj.makeZeeman(g1*(1-sig1)*C.muN,st.mi1) + obj.makeZeeman(g2*(1-sig2)*C.muN,st.mi2) + obj.makeZeeman(Mol.gr*C.muN,st.mN); 
+                % obj.zeeman = obj.makeZeeman(g1*(1-sig1)*C.muN,st.mi1) + obj.makeZeeman(g2*(1-sig2)*C.muN,st.mi2) + obj.makeZeeman(Mol.gr*C.muN,st.mN); 
+                obj.zeeman = C.muN *( g1*(1-sig1)*obj.makeZeeman(UCBasis,i1) + g2*(1-sig2)*obj.makeZeeman(UCBasis,i2) + Mol.gr*obj.makeZeeman(UCBasis,N) ); 
                 %% DC Stark
                 obj.dc_stark = obj.makeDCStark(Mol.d0,st.N,st.mN, dir=obj.Fields.E.dir);
                 %% AC Stark
@@ -201,12 +202,22 @@ classdef Hamiltonian < handle
             if opts.useNuclearElectric
                 h_hyperfine = h_hyperfine + obj.hyperfine.electricQuadrupole;
             end
-            H = h_hyperfine;        
+            
+            h_hyperfine = Constants.h *round(h_hyperfine/Constants.h, 7);
+            H = h_hyperfine;  
+            assert(ishermitian(H));
         end
-        function H = makeZeeman(~,mu,m)
-            n = length(m);
-            z = -mu*m;
-            H = spdiags(z,0,n,n); %only works if bfield is in z-direction
+        function H = makeZeeman(obj,basis,AngMom, opts)
+            arguments
+                obj
+                basis
+                AngMom
+                opts.Bdir = [0,0,1]; %electric field direction
+            end
+            Bdir = opts.Bdir/norm(opts.Bdir);   
+            [Jx,Jy,Jz,~,~] = basis.AngMomOperators(AngMom);
+            H = round( Bdir(1)*Jx + Bdir(2)*Jy + Bdir(3)*Jz, 12);
+            assert(ishermitian(H));
         end
         function H = makeDCStark(obj,d0, N,mN, opts)
             arguments
@@ -222,19 +233,13 @@ classdef Hamiltonian < handle
             if isempty(obj.dipoleOperator)
                 tC = tensorC(N,mN,1);
                 obj.dipoleOperator = {tC{3},tC{2},tC{1}}; %tensorC returns sigma_plus as tC{1}
+                % obj.dipoleOperator = {}
             end
-            TC = obj.dipoleOperator; 
-            dcZ = TC{2};
-            hm = TC{1}; 
-            hp = TC{3}; 
-
-            % dcX = -(1/sqrt(2))*(hm + conj(hm'));
-            % dcY = (1i/sqrt(2))*(hm - conj(hm'));
-
-            dcX = -(1/sqrt(2))*(hm-hp);
-            dcY = (1i/sqrt(2))*(hm+hp);
-
-            H = -d0*squeeze( Edir(1)*dcX + Edir(2)*dcY + Edir(3)*dcZ );
+            dipOp = obj.dipoleOperator; 
+            cart = SphericalToCartesian(dipOp);
+            [dX,dY,dZ] = cart{:};
+            H = -d0*round( Edir(1)*dX + Edir(2)*dY + Edir(3)*dZ ,12);
+            assert(ishermitian(H));
         end
         function H = makeACStark(obj,a0,a2, N,mN, opts)
             % follows 10.1103/PhysRevResearch.2.013251  
@@ -287,8 +292,9 @@ classdef Hamiltonian < handle
 
             % H0 = sphericalTensorDot(A0,P0);
             % H1 = sphericalTensorDot(A1,P1);
-            H2 = sphericalTensorDot(A2,P2); %factor 2/sqrt(6) missing for some reason
+            H2 = round(sphericalTensorDot(A2,P2),12);
             H = -(2/(e0*c))*(a0*H0 + a2*H2)/4; %+a1*H1;
+            assert(ishermitian(H));
         end
         function s = makeSparseMatrix(~,X, iCol, iRow, matrixSize)
             % Prune lists
