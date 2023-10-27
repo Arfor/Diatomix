@@ -1,5 +1,5 @@
 clear all
-addpath("Molecules\");addpath("Atoms\")
+addpath("Molecules\");addpath("Atoms\");addpath("functions\");
 C = Constants;
 %% Define Fields
 maxN = 2;
