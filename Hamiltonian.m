@@ -203,9 +203,8 @@ classdef Hamiltonian < handle
                 h_hyperfine = h_hyperfine + obj.hyperfine.electricQuadrupole;
             end
             
-            h_hyperfine = Constants.h *round(h_hyperfine/Constants.h, 7);
-            H = h_hyperfine;  
-            assert(ishermitian(H));
+            h_hyperfine = Constants.h *h_hyperfine/Constants.h;
+            H = (h_hyperfine'+h_hyperfine)/2;  %make sure that it is hermitian
         end
         function H = makeZeeman(obj,basis,AngMom, opts)
             arguments
@@ -216,8 +215,9 @@ classdef Hamiltonian < handle
             end
             Bdir = opts.Bdir/norm(opts.Bdir);   
             [Jx,Jy,Jz,~,~] = basis.AngMomOperators(AngMom);
-            H = round( Bdir(1)*Jx + Bdir(2)*Jy + Bdir(3)*Jz, 12);
-            assert(ishermitian(H));
+            % H = round( Bdir(1)*Jx + Bdir(2)*Jy + Bdir(3)*Jz, 12);
+            H = Bdir(1)*Jx + Bdir(2)*Jy + Bdir(3)*Jz;
+            H = (H'+H)/2; %make sure that it is hermitian
         end
         function H = makeDCStark(obj,d0, N,mN, opts)
             arguments
@@ -238,8 +238,9 @@ classdef Hamiltonian < handle
             dipOp = obj.dipoleOperator; 
             cart = SphericalToCartesian(dipOp);
             [dX,dY,dZ] = cart{:};
-            H = -d0*round( Edir(1)*dX + Edir(2)*dY + Edir(3)*dZ ,12);
-            assert(ishermitian(H));
+            % H = -d0*round( Edir(1)*dX + Edir(2)*dY + Edir(3)*dZ ,12);
+            H = -d0* (Edir(1)*dX + Edir(2)*dY + Edir(3)*dZ);
+            H = (H'+H)/2;
         end
         function H = makeACStark(obj,a0,a2, N,mN, opts)
             % follows 10.1103/PhysRevResearch.2.013251  
@@ -292,9 +293,9 @@ classdef Hamiltonian < handle
 
             % H0 = sphericalTensorDot(A0,P0);
             % H1 = sphericalTensorDot(A1,P1);
-            H2 = round(sphericalTensorDot(A2,P2),12);
+            H2 = sphericalTensorDot(A2,P2);
             H = -(2/(e0*c))*(a0*H0 + a2*H2)/4; %+a1*H1;
-            assert(ishermitian(H));
+            H = (H'+H)/2; %make sure that it is hermitian
         end
         function s = makeSparseMatrix(~,X, iCol, iRow, matrixSize)
             % Prune lists
