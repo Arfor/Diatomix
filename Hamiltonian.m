@@ -202,8 +202,7 @@ classdef Hamiltonian < handle
             if opts.useNuclearElectric
                 h_hyperfine = h_hyperfine + obj.hyperfine.electricQuadrupole;
             end
-            
-            h_hyperfine = Constants.h *h_hyperfine/Constants.h;
+
             H = (h_hyperfine'+h_hyperfine)/2;  %make sure that it is hermitian
         end
         function H = makeZeeman(obj,basis,AngMom, opts)
@@ -215,7 +214,6 @@ classdef Hamiltonian < handle
             end
             Bdir = opts.Bdir/norm(opts.Bdir);   
             [Jx,Jy,Jz,~,~] = basis.AngMomOperators(AngMom);
-            % H = round( Bdir(1)*Jx + Bdir(2)*Jy + Bdir(3)*Jz, 12);
             H = Bdir(1)*Jx + Bdir(2)*Jy + Bdir(3)*Jz;
             H = (H'+H)/2; %make sure that it is hermitian
         end
@@ -238,7 +236,6 @@ classdef Hamiltonian < handle
             dipOp = obj.dipoleOperator; 
             cart = SphericalToCartesian(dipOp);
             [dX,dY,dZ] = cart{:};
-            % H = -d0*round( Edir(1)*dX + Edir(2)*dY + Edir(3)*dZ ,12);
             H = -d0* (Edir(1)*dX + Edir(2)*dY + Edir(3)*dZ);
             H = (H'+H)/2;
         end
