@@ -1,4 +1,4 @@
-function [diabat, diabatStates, adiabat, adiabatStates] = findAdiabat(x,y,states, xIdx,yIdx)
+function [diabat, diabatStates, adiabat, adiabatStates, diabatSorting] = findAdiabat(x,y,states, xIdx,yIdx)
 %[diabat, diabatStates, adiabat, adiabatStates] = findAdiabat(x,y,states, xIdx,yIdx)
 % x = array of x values
 % y = spectrum for certain number of states
@@ -10,31 +10,31 @@ nStates = s(end);
 adiabat = y(:,yIdx); %follow xth energy state, stores energies
 adiabatStates = abs(squeeze(states(:,:,yIdx))).^2;
 %Checks adjacent states to determine least change in state
-diabatYidx = nan(1,length(x)); %stores yIdx, not energy
+diabatSorting = nan(1,length(x)); %stores yIdx, not energy
 diabat = nan(1,length(x)); %stores yIdx, not energy
 
-diabatYidx(xIdx) = yIdx;
+diabatSorting(xIdx) = yIdx;
 diabat(xIdx) = y(xIdx,yIdx);
 diabatStates = nan(size(adiabatStates));
 diabatStates(xIdx,:) = (squeeze(states(xIdx,:,yIdx)));
 % [~, sIdx] = sortrows(diabatStates(xIdx,:)'.^2,"descend");
 adjC = 3; %set maximum number of adjacent states to look at
 for k=xIdx:(length(x)-1) %forward loop
-    stateNow = (squeeze(states(k,:,diabatYidx(k))));
-    stateSearch = diabatYidx(k)-adjC:diabatYidx(k)+adjC; 
+    stateNow = (squeeze(states(k,:,diabatSorting(k))));
+    stateSearch = diabatSorting(k)-adjC:diabatSorting(k)+adjC; 
     stateSearch(stateSearch<=0)=[];stateSearch(stateSearch>nStates)=[];
     statesNext = conj(squeeze(states(k+1,:,stateSearch)));
     [~,S]=sort(abs(sum((statesNext.*stateNow'),1))); %computes overlap integral
     idx = stateSearch(S(end)); %restrict search to adjacent states
-    if abs(idx-diabatYidx(k))>3
+    if abs(idx-diabatSorting(k))>3
         idx = stateSearch(S(end-1));
     end
-    diabatYidx(k+1) = idx;
+    diabatSorting(k+1) = idx;
     diabat(k+1) = y(k+1,idx);
     diabatStates(k+1,:) = (squeeze(states(k+1,:,idx)));
 end
 for k=(xIdx-1):-1:1 %backward loop
-    stateIdx = diabatYidx(k+1);
+    stateIdx = diabatSorting(k+1);
     stateNow = (squeeze(states(k+1,:,stateIdx)));
     stateSearch =stateIdx-adjC:stateIdx+adjC; 
     stateSearch(stateSearch<=0)=[];stateSearch(stateSearch>nStates)=[];
@@ -44,7 +44,7 @@ for k=(xIdx-1):-1:1 %backward loop
     if abs(idx-stateIdx)>3
         idx = stateSearch(S(end-1));
     end
-    diabatYidx(k) = idx;
+    diabatSorting(k) = idx;
     diabat(k) = y(k,idx);
     diabatStates(k,:) = (squeeze(states(k,:,idx)));
 end    
