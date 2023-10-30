@@ -135,7 +135,7 @@ methods
         end
         U=sparse(iRows,iCols,CGexp,nStates,nStates);
 
-        if ~isequal(round(U*conj(U'),9),speye(nStates)) %check unitarity of matrix (up to numerical errors)
+        if ~isequal(round(U*U',9),speye(nStates)) %check unitarity of matrix (up to numerical errors)
             warning("Matrix not really unitary, check code");
         end
     end
@@ -244,7 +244,7 @@ methods
         % J = AngMomOperators(obj, mom)
         % returns J = {Jx,Jy,Jz,Jmin,Jplus};
         Jplus = raisingOperator(obj, mom);
-        Jmin = conj(Jplus)';
+        Jmin = Jplus';
         Jx = 0.5*(Jplus + Jmin);
         Jy = -1i*0.5*(Jplus - Jmin);
         Jz = 0.5*(Jplus*Jmin - Jmin*Jplus);
