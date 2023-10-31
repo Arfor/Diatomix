@@ -231,13 +231,13 @@ classdef Hamiltonian < handle
             if isempty(obj.dipoleOperator)
                 tC = tensorC(N,mN,1);
                 obj.dipoleOperator = {tC{3},tC{2},tC{1}}; %tensorC returns sigma_plus as tC{1}
-                % obj.dipoleOperator = {}
             end
             dipOp = obj.dipoleOperator; 
             cart = SphericalToCartesian(dipOp);
             [dX,dY,dZ] = cart{:};
+
             H = -d0* (Edir(1)*dX + Edir(2)*dY + Edir(3)*dZ);
-            H = (H'+H)/2;
+            % H = (H'+H)/2;
         end
         function H = makeACStark(obj,a0,a2, N,mN, opts)
             % follows 10.1103/PhysRevResearch.2.013251  
