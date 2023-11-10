@@ -40,11 +40,11 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
         MoleculeEditField           matlab.ui.control.EditField
         MoleculeLabel               matlab.ui.control.Label
         Tree                        matlab.ui.container.CheckBoxTree
-        NuclearElectricNode         matlab.ui.container.TreeNode
-        SpinRotationNode            matlab.ui.container.TreeNode
-        SpinSpinTensorNode          matlab.ui.container.TreeNode
-        SpinSpinScalarNode          matlab.ui.container.TreeNode
         RigidRotorNode              matlab.ui.container.TreeNode
+        SpinSpinScalarNode          matlab.ui.container.TreeNode
+        SpinSpinTensorNode          matlab.ui.container.TreeNode
+        SpinRotationNode            matlab.ui.container.TreeNode
+        NuclearElectricNode         matlab.ui.container.TreeNode
         BasisTab                    matlab.ui.container.Tab
         GridLayout9                 matlab.ui.container.GridLayout
         BasisChoice                 matlab.ui.control.DropDown
@@ -473,6 +473,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
                 ud.selectN = 0;
                 ud.xVar = Field.B;
                 ud.Nmax = comp.NmaxEditField.Value;
+                ud.BasisChoice = comp.BasisChoice.Value;
                 ud.hamOpts.useRigidRotor = 1;
                 ud.hamOpts.useSpinSpinScalar = 1;
                 ud.hamOpts.useSpinSpinTensor = 1;
@@ -527,7 +528,14 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             % text(ax,min(ud.xVar.value),cSpec(xIdx,yIdx), sprintf("%.3g",cSpec(xIdx,yIdx)), HorizontalAlignment="right", Tag='updatePlot');
 
             %retrieve state composition of point and update table
-            stateComp = (round(squeeze(abs(cStates(xIdx,:,yIdx)).^2),6));
+            clickedState = cStates(xIdx,:,yIdx);
+            % switch string(ud.BasisChoice)
+            %     case "Uncoupled"
+            %         stateComp = (round(squeeze(abs(clickedState).^2),6));
+            %     case "Fully Coupled"
+            % 
+            % end
+            stateComp = (round(squeeze(abs(clickedState).^2),6));
             [statesCompTable, ~] = sortrows([array2table(stateComp',"VariableNames","Comp") , ud.statesUCBasis], "Comp","descend");
             comp.UITable.Data = statesCompTable(1:20,:);
 
@@ -842,6 +850,11 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             assignin('base', 'X',comp.UserData.xVar);
             assignin('base', 'Y',comp.UserData.yVar1);
             assignin('base', 'States',comp.UserData.currStates);
+        end
+
+        % Value changed function: BasisChoice
+        function BasisChoiceValueChanged(comp, event)
+            comp.UserData.BasisChoice = comp.BasisChoice.Value;
         end
     end
 
@@ -1161,6 +1174,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             % Create BasisChoice
             comp.BasisChoice = uidropdown(comp.GridLayout9);
             comp.BasisChoice.Items = {'Uncoupled', 'Fully Coupled'};
+            comp.BasisChoice.ValueChangedFcn = matlab.apps.createCallbackFcn(comp, @BasisChoiceValueChanged, true);
             comp.BasisChoice.Layout.Row = 2;
             comp.BasisChoice.Layout.Column = 2;
             comp.BasisChoice.Value = 'Uncoupled';
