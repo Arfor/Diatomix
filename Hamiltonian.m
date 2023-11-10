@@ -214,7 +214,7 @@ classdef Hamiltonian < handle
             end
             Bdir = opts.Bdir/norm(opts.Bdir);   
             [Jx,Jy,Jz,~,~] = basis.AngMomOperators(AngMom);
-            H = Bdir(1)*Jx + Bdir(2)*Jy + Bdir(3)*Jz;
+            H = -(Bdir(1)*Jx + Bdir(2)*Jy + Bdir(3)*Jz);
             H = (H'+H)/2; %make sure that it is hermitian
         end
         function H = makeDCStark(obj,d0, N,mN, opts)
