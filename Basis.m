@@ -5,6 +5,7 @@ properties
     states
     momenta
     qnumbers
+    transforms
     NStates
 end
 

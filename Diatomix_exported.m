@@ -220,9 +220,12 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             comp.UITable.ColumnName = ["Comp",stateNames];
             ud.selectStates = ismember(ud.statesUCBasis.N,ud.selectN);
             
+            ud.Bases.FC = [];
+            ud.Bases.SC = [];
             ud.diabatStates=[];
             ud.muEffective = [];
             ud.inducedDipole = [];
+            ud.clickedState = [];
             comp.UserData = ud;
         end
         function sortStates(comp)
@@ -434,6 +437,63 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             tdmTable = [E, round(array2table([tdm(sortIdx,:),sortIdx],"VariableNames",["s-","p","s+","StateIdx"]),4)];
             comp.TDMTable.Data = tdmTable(1:min(50,comp.UserData.NStates),:);
         end
+        
+        function basis = getBasis(comp) %calculates basis if empty, otherwise just returns the right basis
+            UCBasis = comp.Ham.Basis;
+            i1 = UCBasis.momenta.i1;
+            i2 = UCBasis.momenta.i2;
+            N = UCBasis.momenta.N;
+            switch string(comp.UserData.BasisChoice)
+                case "Uncoupled"
+                    comp.UserData.qnumbers = ["N","mN","mi1","mi2"];
+                    basis = UCBasis;
+                    basis.transforms.toUC = speye(basis.NStates);
+                case "Spin Coupled"
+                    comp.UserData.qnumbers = ["N","mN","I","mI"];    
+                    if isempty(comp.UserData.Bases.SC)
+                        I = couple(i1,i2,"I");      %couple the two nuclear momenta
+                        SCBasis = Basis(N,I); 
+                        SCtoUC = calcTransform(SCBasis,UCBasis,I); %gives you U such that UCBasis = U*SCBasis
+                        SCBasis.transforms.toUC = SCtoUC';
+                        comp.UserData.Bases.SC = SCBasis;
+                    end
+                    basis = comp.UserData.Bases.SC;
+                case "Fully Coupled"
+                    comp.UserData.qnumbers = ["N","I","F","mF"];
+                    if isempty(comp.UserData.Bases.SC)
+                        I = couple(i1,i2,"I");      %couple the two nuclear momenta
+                        SCBasis = Basis(N,I); 
+                        SCtoUC = calcTransform(SCBasis,UCBasis,I); %gives you U such that UCBasis = U*SCBasis
+                        SCBasis.transforms.toUC = SCtoUC;
+                        comp.UserData.Bases.SC = SCBasis;
+                    else
+                        SCBasis = comp.UserData.Bases.SC;
+                        I = SCBasis.momenta.I;
+                    end
+                    if isempty(comp.UserData.Bases.FC)
+                        F = couple(I,N,"F");        %fully coupled
+                        FCBasis = Basis(F);
+                        SCtoUC = SCBasis.transforms.toUC;
+                        FCtoSC = calcTransform(FCBasis,SCBasis,F); %function gives you U such that SCBasis = U*FCBasis
+                        FCBasis.transforms.toUC = (FCtoSC * SCtoUC); %gives you U such that FCBasis = U*UCBasis
+                        comp.UserData.Bases.FC = FCBasis;
+                    end
+                    basis = comp.UserData.Bases.FC;
+            end            
+                % Atom1 = Mol.Atom1;
+                % Atom2 = Mol.Atom2;
+                % i1 = AngMom(Atom1.spin,"i1");
+                % i2 = AngMom(Atom2.spin,"i2");
+                % N = AngMom([0:obj.maxN],"N");
+                % I = couple(i1,i2,"I");      %couple the two nuclear momenta
+                % F = couple(I,N,"F");        %fully coupled
+                % UCBasis = comp.Ham.Basis;
+                % SCBasis = Basis(N,I); 
+                % FCBasis = Basis(F);
+                % SCtoUC = calcTransform(SCBasis,UCBasis,I); %gives you U such that UCBasis = U*SCBasis
+                % FCtoSC = calcTransform(FCBasis,SCBasis,F); %gives you U such that SCBasis = U*FCBasis
+                % FCtoUC = (FCtoSC * SCtuUC)'; %gives you U such that FCBasis = U*UCBasis
+        end
     end
 
     % Callbacks that handle component events
@@ -473,7 +533,10 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
                 ud.selectN = 0;
                 ud.xVar = Field.B;
                 ud.Nmax = comp.NmaxEditField.Value;
+                ud.qnumbers = ["N","mN","mi1","mi2"];
                 ud.BasisChoice = comp.BasisChoice.Value;
+                ud.Bases.SC = [];
+                ud.Bases.FC = [];
                 ud.hamOpts.useRigidRotor = 1;
                 ud.hamOpts.useSpinSpinScalar = 1;
                 ud.hamOpts.useSpinSpinTensor = 1;
@@ -497,6 +560,8 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
                 drawnow;
                 comp.Parent.WindowState = 'maximized';
                 drawnow; % Force to draw the uifigure first
+                event.IntersectionPoint = [comp.UIAxes.XLim(2),comp.UIAxes.YLim(1),0];
+                UIAxesButtonDown(comp, event)
         end
 
         % Button down function: UIAxes
@@ -528,15 +593,16 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             % text(ax,min(ud.xVar.value),cSpec(xIdx,yIdx), sprintf("%.3g",cSpec(xIdx,yIdx)), HorizontalAlignment="right", Tag='updatePlot');
 
             %retrieve state composition of point and update table
-            clickedState = cStates(xIdx,:,yIdx);
-            % switch string(ud.BasisChoice)
-            %     case "Uncoupled"
-            %         stateComp = (round(squeeze(abs(clickedState).^2),6));
-            %     case "Fully Coupled"
-            % 
-            % end
-            stateComp = (round(squeeze(abs(clickedState).^2),6));
-            [statesCompTable, ~] = sortrows([array2table(stateComp',"VariableNames","Comp") , ud.statesUCBasis], "Comp","descend");
+            clickedState = reshape(cStates(xIdx,:,yIdx),[],1);
+            comp.UserData.clickedState = clickedState;
+
+            B = getBasis(comp);
+            statesBasis = B.getStates('all');
+            statesBasis = statesBasis(:,ud.qnumbers);
+            st = B.transforms.toUC * clickedState;
+            stateComp = (round(squeeze(abs(st).^2),6));
+            [statesCompTable, ~] = sortrows([array2table(stateComp,"VariableNames","Comp") , statesBasis], "Comp","descend");
+            comp.UITable.ColumnName = statesCompTable.Properties.VariableNames;
             comp.UITable.Data = statesCompTable(1:20,:);
 
             %find diabat and adiabat and highlight. Also plots legend
@@ -735,9 +801,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             %retrieve state composition of point and update table
             stateComp = round(squeeze(abs(ud.states(xIdx,:,yIdx))).^2,6);
             [statesCompTable, ~] = sortrows([array2table(stateComp',"VariableNames","Comp") , ud.statesUCBasis], "Comp","descend");
-            comp.UITable.Data = statesCompTable(1:min(50,ud.NStates),:);
-
-            
+            comp.UITable.Data = statesCompTable(1:min(50,ud.NStates),:);  
         end
 
         % Value changed function: plotTDMCheckbox
@@ -855,6 +919,28 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
         % Value changed function: BasisChoice
         function BasisChoiceValueChanged(comp, event)
             comp.UserData.BasisChoice = comp.BasisChoice.Value;
+            clickedState = comp.UserData.clickedState;
+            if ~isempty(clickedState)
+            B = getBasis(comp);
+            statesBasis = B.getStates('all');
+            statesBasis = statesBasis(:,comp.UserData.qnumbers);
+            st = B.transforms.toUC * clickedState;
+            stateComp = (round(squeeze(abs(st).^2),6));
+            [statesCompTable, ~] = sortrows([array2table(stateComp,"VariableNames","Comp") , statesBasis], "Comp","descend");
+            comp.UITable.ColumnName = statesCompTable.Properties.VariableNames;
+            comp.UITable.Data = statesCompTable(1:20,:);
+            end
+            % ud = comp.UserData;
+            % yIdx = table2array(comp.TDMTable.Data(comp.TDMTable.Selection,"StateIdx")); %is always only one
+            % x = comp.TDMVarValue.Value;
+            % xVals = comp.UserData.xVar.value;
+            % [~,xIdx] = min(abs(x-xVals)); 
+            % 
+            % %retrieve state composition of point and update table
+            % stateComp = round(squeeze(abs(ud.states(xIdx,:,yIdx))).^2,6);
+            % [statesCompTable, ~] = sortrows([array2table(stateComp',"VariableNames","Comp") , ud.statesUCBasis], "Comp","descend");
+            % comp.UITable.Data = statesCompTable(1:min(50,ud.NStates),:);
+
         end
     end
 
