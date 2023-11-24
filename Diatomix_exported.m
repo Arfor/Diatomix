@@ -480,19 +480,20 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
                     end
                     basis = comp.UserData.Bases.FC;
             end            
-                % Atom1 = Mol.Atom1;
-                % Atom2 = Mol.Atom2;
-                % i1 = AngMom(Atom1.spin,"i1");
-                % i2 = AngMom(Atom2.spin,"i2");
-                % N = AngMom([0:obj.maxN],"N");
-                % I = couple(i1,i2,"I");      %couple the two nuclear momenta
-                % F = couple(I,N,"F");        %fully coupled
-                % UCBasis = comp.Ham.Basis;
-                % SCBasis = Basis(N,I); 
-                % FCBasis = Basis(F);
-                % SCtoUC = calcTransform(SCBasis,UCBasis,I); %gives you U such that UCBasis = U*SCBasis
-                % FCtoSC = calcTransform(FCBasis,SCBasis,F); %gives you U such that SCBasis = U*FCBasis
-                % FCtoUC = (FCtoSC * SCtuUC)'; %gives you U such that FCBasis = U*UCBasis
+        end
+        
+        function updateCompTable(comp)
+            clickedState = comp.UserData.clickedState;
+            if ~isempty(clickedState)
+                B = getBasis(comp);
+                statesBasis = B.getStates('all');
+                statesBasis = statesBasis(:,comp.UserData.qnumbers);
+                st = B.transforms.toUC * clickedState;
+                stateComp = (round(squeeze(abs(st).^2),6));
+                [statesCompTable, ~] = sortrows([array2table(stateComp,"VariableNames","Comp") , statesBasis], "Comp","descend");
+                comp.UITable.ColumnName = statesCompTable.Properties.VariableNames;
+                comp.UITable.Data = statesCompTable(1:30,:);
+            end
         end
     end
 
@@ -595,15 +596,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             %retrieve state composition of point and update table
             clickedState = reshape(cStates(xIdx,:,yIdx),[],1);
             comp.UserData.clickedState = clickedState;
-
-            B = getBasis(comp);
-            statesBasis = B.getStates('all');
-            statesBasis = statesBasis(:,ud.qnumbers);
-            st = B.transforms.toUC * clickedState;
-            stateComp = (round(squeeze(abs(st).^2),6));
-            [statesCompTable, ~] = sortrows([array2table(stateComp,"VariableNames","Comp") , statesBasis], "Comp","descend");
-            comp.UITable.ColumnName = statesCompTable.Properties.VariableNames;
-            comp.UITable.Data = statesCompTable(1:20,:);
+            updateCompTable(comp);
 
             %find diabat and adiabat and highlight. Also plots legend
             if comp.PlotAdiabatsCheckBox.Value
@@ -797,11 +790,8 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             x = comp.TDMVarValue.Value;
             xVals = comp.UserData.xVar.value;
             [~,xIdx] = min(abs(x-xVals)); 
-            
-            %retrieve state composition of point and update table
-            stateComp = round(squeeze(abs(ud.states(xIdx,:,yIdx))).^2,6);
-            [statesCompTable, ~] = sortrows([array2table(stateComp',"VariableNames","Comp") , ud.statesUCBasis], "Comp","descend");
-            comp.UITable.Data = statesCompTable(1:min(50,ud.NStates),:);  
+            comp.UserData.clickedState = reshape(ud.states(xIdx,:,yIdx),[],1);
+            updateCompTable(comp);
         end
 
         % Value changed function: plotTDMCheckbox
@@ -919,28 +909,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
         % Value changed function: BasisChoice
         function BasisChoiceValueChanged(comp, event)
             comp.UserData.BasisChoice = comp.BasisChoice.Value;
-            clickedState = comp.UserData.clickedState;
-            if ~isempty(clickedState)
-            B = getBasis(comp);
-            statesBasis = B.getStates('all');
-            statesBasis = statesBasis(:,comp.UserData.qnumbers);
-            st = B.transforms.toUC * clickedState;
-            stateComp = (round(squeeze(abs(st).^2),6));
-            [statesCompTable, ~] = sortrows([array2table(stateComp,"VariableNames","Comp") , statesBasis], "Comp","descend");
-            comp.UITable.ColumnName = statesCompTable.Properties.VariableNames;
-            comp.UITable.Data = statesCompTable(1:20,:);
-            end
-            % ud = comp.UserData;
-            % yIdx = table2array(comp.TDMTable.Data(comp.TDMTable.Selection,"StateIdx")); %is always only one
-            % x = comp.TDMVarValue.Value;
-            % xVals = comp.UserData.xVar.value;
-            % [~,xIdx] = min(abs(x-xVals)); 
-            % 
-            % %retrieve state composition of point and update table
-            % stateComp = round(squeeze(abs(ud.states(xIdx,:,yIdx))).^2,6);
-            % [statesCompTable, ~] = sortrows([array2table(stateComp',"VariableNames","Comp") , ud.statesUCBasis], "Comp","descend");
-            % comp.UITable.Data = statesCompTable(1:min(50,ud.NStates),:);
-
+            updateCompTable(comp);
         end
     end
 
