@@ -211,7 +211,7 @@ methods
     end
     
     function Jplus = raisingOperator(obj, mom)
-        assert(length(mom.js)==length(unique(mom.js))) %only works now if angular momentum has unique vales
+        assert(length(mom.js)==length(unique(mom.js)),"raisingOperator(obj, mom): ") %only works now if angular momentum has unique vales
         J = obj.getStates(mom.name);
         mJ = obj.getStates("m"+mom.name);
 

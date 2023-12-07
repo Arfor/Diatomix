@@ -109,7 +109,7 @@ classdef Hamiltonian < handle
             H = spdiags(s,0,n,n); %create diagonal sparse matrix
         end
         function H = tensorNuclear(obj,c3,j1,j2, basis)           
-            assert(length(j1.js)==1 && length(j2.js)==1); %Only checked for single vectors, do some thorough checking of basis.AngMomOperators first if you want to extend functionality!
+            assert(length(j1.js)==1 && length(j2.js)==1,"tensorNuclear(obj,c3,j1,j2,basis):"); %Only checked for single vectors, do some thorough checking of basis.AngMomOperators first if you want to extend functionality!
             I1 = j1.js;
             I2 = j2.js;
             N = basis.getStates("N");
@@ -265,7 +265,7 @@ classdef Hamiltonian < handle
             %First find the matrix to rotate the beam/polarisation into the reference axis
             rotAx = cross(dir,obj.ReferenceAxis); %rotation axis
             angle = acos(dot(dir,obj.ReferenceAxis)); %rotation angle in radians
-            polRot = rotvec2mat3d(rotAx*angle)*pol;
+            polRot = rotvec2mat(rotAx*angle)*pol;
 
             %The isotropic part is diagonal
             H0 = speye(n,n);

@@ -156,7 +156,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             I = F.I.value(1)*F.I.scale;
             tmp = namedargs2cell(comp.UserData.hamOpts); %because eugh, matlab...
             H0 = h.makeHyperfine(tmp{:});
-            assert(ishermitian(H0 + h.zeeman + h.dc_stark + h.ac_stark));
+            assert(ishermitian(H0 + h.zeeman + h.dc_stark + h.ac_stark), "calculateSpectrum(): H is not hermitian");
             for k = 1:length(ud.xVar.value)
                 setStatus(comp, 'yellow', sprintf('Calc. %.0f/%.0f',k,length(ud.xVar.value)));
                 if strcmp(ud.xVar.name,"B")
@@ -640,9 +640,9 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             Bdir = eval(comp.BDirField.Value);
             Edir = eval(comp.EDirField.Value);
             Idir = eval(comp.Laser1DirField.Value);
-            assert(length(Bdir)==3 && sum(Bdir)~=0);
-            assert(length(Edir)==3 && sum(Edir)~=0);
-            assert(length(Idir)==3 && sum(Idir)~=0);
+            assert(length(Bdir)==3 && sum(Bdir)~=0, "CFieldDirectionChanged()");
+            assert(length(Edir)==3 && sum(Edir)~=0, "FieldDirectionChanged()");
+            assert(length(Idir)==3 && sum(Idir)~=0, "FieldDirectionChanged()");
 
             Field.B.dir=Bdir/norm(Bdir); 
             Field.E.dir=Edir/norm(Edir); 
@@ -688,7 +688,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
         function NmaxChanged(comp, event)
             Nmax = comp.NmaxEditField.Value;
             comp.UserData.Nmax = Nmax;
-            assert(max(comp.UserData.selectN)<= Nmax);
+            assert(max(comp.UserData.selectN)<= Nmax,"NmaxChanged():");
 
             % updateVars(comp);
             if comp.UserData.autoUpdate
@@ -760,7 +760,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
             %update N Manifold to plot
             ud = comp.UserData;
             selectN = int32(eval(comp.N1EditField.Value));
-            assert(max(selectN)<=ud.Nmax);
+            assert(max(selectN)<=ud.Nmax,"plotNChanged():");
             if ~isequal(ud.selectN,selectN)
             ud.selectN = selectN;
             ud.selectStates = ismember(ud.statesUCBasis.N,selectN);
@@ -775,7 +775,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
         % Value changed function: TDMInitialStateEditField
         function TDMInitStateChanged(comp, event)
             stateIdx = comp.TDMInitialStateEditField.Value;
-            assert(stateIdx <= comp.UserData.NStates);
+            assert(stateIdx <= comp.UserData.NStates, "TDMInitStateChanged():");
             comp.UserData.TDMInitialState = stateIdx;
 
             calculateTDM(comp);
@@ -866,7 +866,7 @@ classdef Diatomix_exported < matlab.ui.componentcontainer.ComponentContainer
         function ACStarkChanged(comp, event)
             Field = comp.Fields;
             Idir = eval(comp.Laser1DirField.Value);
-            assert(length(Idir)==3 && sum(Idir)~=0);
+            assert(length(Idir)==3 && sum(Idir)~=0,"ACStarkChanged():");
             Field.I.dir=Idir/norm(Idir); 
 
             Field.I.polAngle = (eval(comp.Laser1PolAngleField.Value));
